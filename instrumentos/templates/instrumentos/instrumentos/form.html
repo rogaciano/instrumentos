@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>
+            <i class="fas fa-guitar"></i> {{ titulo }}
+        </h2>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="row">
+                <!-- Informações Básicas -->
+                <div class="col-md-6">
+                    <h4 class="mb-3">Informações Básicas</h4>
+
+                    <div class="mb-3">
+                        <label for="{{ form.nome.id_for_label }}" class="form-label">Nome</label>
+                        {{ form.nome }}
+                        {% if form.nome.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ form.nome.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.categoria.id_for_label }}" class="form-label">Categoria</label>
+                        <div class="input-group">
+                            {{ form.categoria }}
+                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal"
+                                data-bs-target="#novaCategoriaModal">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        {% if form.categoria.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ form.categoria.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.marca.id_for_label }}" class="form-label">Marca</label>
+                        <div class="input-group">
+                            {{ form.marca }}
+                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal"
+                                data-bs-target="#novaMarcaModal">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        {% if form.marca.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ form.marca.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.modelo.id_for_label }}" class="form-label">Modelo</label>
+                        <div class="input-group">
+                            {{ form.modelo }}
+                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal"
+                                data-bs-target="#novoModeloModal">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        {% if form.modelo.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ form.modelo.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Detalhes -->
+                <div class="col-md-6">
+                    <h4 class="mb-3">Detalhes</h4>
+
+                    <div class="mb-3">
+                        <label for="{{ form.ano_fabricacao.id_for_label }}" class="form-label">Ano de Fabricação</label>
+                        {{ form.ano_fabricacao }}
+                        {% if form.ano_fabricacao.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ form.ano_fabricacao.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.numero_serie.id_for_label }}" class="form-label">Número de Série</label>
+                        {{ form.numero_serie }}
+                        {% if form.numero_serie.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ form.numero_serie.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.estado_conservacao.id_for_label }}" class="form-label">Estado de
+                            Conservação</label>
+                        {{ form.estado_conservacao }}
+                        {% if form.estado_conservacao.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ form.estado_conservacao.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <!-- Informações Financeiras -->
+                <div class="col-md-6">
+                    <h4 class="mb-3">Informações Financeiras</h4>
+
+                    <div class="mb-3">
+                        <label for="{{ form.valor_aquisicao.id_for_label }}" class="form-label">Valor de
+                            Aquisição</label>
+                        {{ form.valor_aquisicao }}
+                        {% if form.valor_aquisicao.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ form.valor_aquisicao.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.valor_mercado.id_for_label }}" class="form-label">Valor de Mercado</label>
+                        {{ form.valor_mercado }}
+                        {% if form.valor_mercado.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ form.valor_mercado.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.data_aquisicao.id_for_label }}" class="form-label">Data de Aquisição</label>
+                        {{ form.data_aquisicao }}
+                        {% if form.data_aquisicao.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ form.data_aquisicao.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Características -->
+                <div class="col-md-6">
+                    <h4 class="mb-3">Características</h4>
+
+                    <div class="mb-3">
+                        <label for="{{ form.caracteristicas.id_for_label }}" class="form-label">Características</label>
+                        {{ form.caracteristicas }}
+                        {% if form.caracteristicas.errors %}
+                        <div class="alert alert-danger mt-1">
+                            {{ form.caracteristicas.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if not instrumento %}
+            <!-- Upload de Fotos (apenas no cadastro) -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h4 class="mb-3">Fotos</h4>
+                    <div class="mb-3">
+                        <label class="form-label">Fotos do Instrumento</label>
+                        <input type="file" name="fotos" multiple class="form-control" accept="image/*">
+                        <div class="form-text">Você pode selecionar múltiplas fotos.</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+                <a href="{% url 'lista_instrumentos' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Nova Marca -->
+<div class="modal fade" id="novaMarcaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Marca</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovaMarca">
+                    <div class="mb-3">
+                        <label class="form-label">Nome</label>
+                        <input type="text" class="form-control" name="nome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">País de Origem</label>
+                        <input type="text" class="form-control" name="pais_origem">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Website</label>
+                        <input type="url" class="form-control" name="website">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarMarca()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nova Categoria -->
+<div class="modal fade" id="novaCategoriaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Categoria</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovaCategoria">
+                    <div class="mb-3">
+                        <label class="form-label">Nome</label>
+                        <input type="text" class="form-control" name="nome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-control" name="descricao" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarCategoria()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Novo Modelo -->
+<div class="modal fade" id="novoModeloModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Novo Modelo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovoModelo">
+                    <div class="mb-3">
+                        <label class="form-label">Nome</label>
+                        <input type="text" class="form-control" name="nome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Marca</label>
+                        <select class="form-select" name="marca" required>
+                            <option value="">Selecione uma marca</option>
+                            {% for marca in form.marca.field.queryset %}
+                            <option value="{{ marca.id }}">{{ marca.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-control" name="descricao" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarModelo()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function salvarMarca() {
+        const formData = new FormData(document.getElementById('formNovaMarca'));
+
+        fetch('{% url "api_nova_marca" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Adiciona a nova marca ao select
+                    const select = document.getElementById('{{ form.marca.id_for_label }}');
+                    const option = new Option(data.marca.nome, data.marca.id, true, true);
+                    select.add(option);
+
+                    // Fecha o modal
+                    bootstrap.Modal.getInstance(document.getElementById('novaMarcaModal')).hide();
+
+                    // Limpa o formulário
+                    document.getElementById('formNovaMarca').reset();
+                } else {
+                    alert('Erro ao salvar marca: ' + data.error);
+                }
+            });
+    }
+
+    function salvarCategoria() {
+        const formData = new FormData(document.getElementById('formNovaCategoria'));
+
+        fetch('{% url "api_nova_categoria" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Adiciona a nova categoria ao select
+                    const select = document.getElementById('{{ form.categoria.id_for_label }}');
+                    const option = new Option(data.categoria.nome, data.categoria.id, true, true);
+                    select.add(option);
+
+                    // Fecha o modal
+                    bootstrap.Modal.getInstance(document.getElementById('novaCategoriaModal')).hide();
+
+                    // Limpa o formulário
+                    document.getElementById('formNovaCategoria').reset();
+                } else {
+                    alert('Erro ao salvar categoria: ' + data.error);
+                }
+            });
+    }
+
+    function salvarModelo() {
+        const formData = new FormData(document.getElementById('formNovoModelo'));
+
+        fetch('{% url "api_novo_modelo" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Adiciona o novo modelo ao select
+                    const select = document.getElementById('{{ form.modelo.id_for_label }}');
+                    const option = new Option(data.modelo.nome, data.modelo.id, true, true);
+                    select.add(option);
+
+                    // Fecha o modal
+                    bootstrap.Modal.getInstance(document.getElementById('novoModeloModal')).hide();
+
+                    // Limpa o formulário
+                    document.getElementById('formNovoModelo').reset();
+                } else {
+                    alert('Erro ao salvar modelo: ' + data.error);
+                }
+            });
+    }
+</script>
+{% endblock %}

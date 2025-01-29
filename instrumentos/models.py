@@ -42,7 +42,8 @@ class Instrumento(models.Model):
     marca = models.ForeignKey(Marca, on_delete=models.CASCADE)
     modelo = models.ForeignKey(Modelo, on_delete=models.CASCADE)
     ano_fabricacao = models.IntegerField()
-    preco = models.DecimalField(max_digits=10, decimal_places=2)
+    valor_aquisicao = models.DecimalField(max_digits=10, decimal_places=2)
+    valor_mercado = models.DecimalField(max_digits=10, decimal_places=2)
     numero_serie = models.CharField(max_length=100, blank=True)
     caracteristicas = models.TextField()
     data_aquisicao = models.DateField()
@@ -65,9 +66,9 @@ class Instrumento(models.Model):
         verbose_name_plural = 'Instrumentos'
 
 class FotoInstrumento(models.Model):
-    instrumento = models.ForeignKey(Instrumento, related_name='fotos', on_delete=models.CASCADE)
-    imagem = models.ImageField(upload_to='instrumentos/')
-    descricao = models.CharField(max_length=200, blank=True)
+    instrumento = models.ForeignKey(Instrumento, on_delete=models.CASCADE)
+    imagem = models.ImageField(upload_to='instrumentos/', blank=True, null=True)
+    descricao = models.CharField(max_length=100, blank=True, null=True)
     data_upload = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

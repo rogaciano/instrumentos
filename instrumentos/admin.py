@@ -23,9 +23,10 @@ class FotoInstrumentoInline(admin.TabularInline):
 
 @admin.register(Instrumento)
 class InstrumentoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'categoria', 'marca', 'modelo', 'ano_fabricacao', 'preco')
+    list_display = ('nome', 'categoria', 'marca', 'modelo', 'ano_fabricacao', 
+                   'valor_aquisicao', 'valor_mercado', 'estado_conservacao')
     list_filter = ('categoria', 'marca', 'estado_conservacao')
-    search_fields = ('nome', 'numero_serie')
+    search_fields = ('nome', 'marca__nome', 'modelo__nome')
     inlines = [FotoInstrumentoInline]
 
 @admin.register(FotoInstrumento)
