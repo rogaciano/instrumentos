@@ -4,9 +4,11 @@ from .models import Instrumento, Categoria, Modelo, FotoInstrumento, Marca
 from .forms import CategoriaForm, ModeloForm, InstrumentoForm, MarcaForm
 from django.db.models import Q, Sum
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
+@login_required
 def home(request):
     total_instrumentos = Instrumento.objects.count()
     total_categorias = Categoria.objects.count()
@@ -144,6 +146,7 @@ def excluir_modelo(request, pk):
     
     return redirect('lista_modelos')
 
+@login_required
 def lista_instrumentos(request):
     instrumentos = Instrumento.objects.all()
     
@@ -172,6 +175,7 @@ def lista_instrumentos(request):
         'categorias': categorias
     })
 
+@login_required
 def novo_instrumento(request):
     if request.method == 'POST':
         form = InstrumentoForm(request.POST)

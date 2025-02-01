@@ -10,7 +10,7 @@ def register(request):
             user = form.save()
             login(request, user)
             messages.success(request, 'Registro realizado com sucesso!')
-            return redirect('lista_instrumentos')
+            return redirect('home')
     else:
         form = UserRegistrationForm()
     return render(request, 'registration/register.html', {'form': form}) 

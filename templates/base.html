@@ -15,39 +15,59 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-music"></i> Meus Instrumentos
+                <i class="fas fa-guitar"></i> Instrumentos
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav me-auto">
+                    {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">
-                            <i class="fas fa-home"></i> Início
-                        </a>
+                        <a class="nav-link" href="{% url 'lista_instrumentos' %}">Instrumentos</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'lista_categorias' %}">Categorias</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'lista_modelos' %}">Modelos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'lista_marcas' %}">Marcas</a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                {% if user.is_authenticated %}
+                <ul class="navbar-nav">
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-list"></i> Cadastros
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user"></i> {{ user.username }}
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'lista_instrumentos' %}"><i
-                                        class="fas fa-guitar"></i> Instrumentos</a></li>
-                            <li><a class="dropdown-item" href="{% url 'lista_categorias' %}"><i class="fas fa-tags"></i>
-                                    Categorias</a></li>
-                            <li><a class="dropdown-item" href="{% url 'lista_modelos' %}"><i class="fas fa-tag"></i>
-                                    Modelos</a></li>
-                            <li><a class="dropdown-item" href="{% url 'lista_marcas' %}"><i class="fas fa-industry"></i>
-                                    Marcas</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{% url 'password_change' %}">
+                                    <i class="fas fa-key"></i> Alterar Senha
+                                </a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt"></i> Sair
+                                </a></li>
                         </ul>
                     </li>
+                </ul>
+                {% else %}
+                <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-search"></i> Buscar
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt"></i> Entrar
                         </a>
                     </li>
                 </ul>
+                {% endif %}
             </div>
         </div>
     </nav>
