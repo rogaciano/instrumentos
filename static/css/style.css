@@ -16,3 +16,14 @@
 .form-control.is-invalid {
     border-color: #dc3545;
 }
+
+.modal-loading .modal-content {
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 1rem;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}

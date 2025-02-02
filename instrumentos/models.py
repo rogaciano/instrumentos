@@ -2,7 +2,7 @@
 from django.db import models
 
 class Categoria(models.Model):
-    nome = models.CharField(max_length=100)
+    nome = models.CharField(max_length=100, unique=True)
     descricao = models.TextField(blank=True)
 
     def __str__(self):
@@ -11,9 +11,10 @@ class Categoria(models.Model):
     class Meta:
         verbose_name = 'Categoria'
         verbose_name_plural = 'Categorias'
+        ordering = ['nome']
 
 class Marca(models.Model):
-    nome = models.CharField(max_length=100)
+    nome = models.CharField(max_length=100, unique=True)
     pais_origem = models.CharField(max_length=100, blank=True)
     website = models.URLField(blank=True)
 
@@ -23,6 +24,7 @@ class Marca(models.Model):
     class Meta:
         verbose_name = 'Marca'
         verbose_name_plural = 'Marcas'
+        ordering = ['nome']
 
 class Modelo(models.Model):
     nome = models.CharField(max_length=100)
@@ -34,6 +36,13 @@ class Modelo(models.Model):
     class Meta:
         verbose_name = 'Modelo'
         verbose_name_plural = 'Modelos'
+        ordering = ['nome']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['nome'],
+                name='unique_modelo_nome'
+            )
+        ]
 
 class Instrumento(models.Model):
     nome = models.CharField(max_length=200)

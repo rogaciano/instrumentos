@@ -5,6 +5,9 @@ from .forms import CategoriaForm, ModeloForm, InstrumentoForm, MarcaForm
 from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+import os
+import json
+import openai
 
 # Create your views here.
 
@@ -31,9 +34,19 @@ def home(request):
 
 
 def lista_categorias(request):
-    categorias = Categoria.objects.all().order_by('nome')
+    categorias = Categoria.objects.all()
+    
+    # Filtro por busca
+    search = request.GET.get('search')
+    if search:
+        categorias = categorias.filter(
+            Q(nome__icontains=search) |
+            Q(descricao__icontains=search)
+        )
+    
     return render(request, 'instrumentos/categorias/lista.html', {
-        'categorias': categorias
+        'categorias': categorias,
+        'search': search
     })
 
 def nova_categoria(request):
@@ -91,9 +104,19 @@ def detalhe_categoria(request, pk):
 
 # Views para Modelo
 def lista_modelos(request):
-    modelos = Modelo.objects.all().order_by('nome')
+    modelos = Modelo.objects.all()
+    
+    # Filtro por busca
+    search = request.GET.get('search')
+    if search:
+        modelos = modelos.filter(
+            Q(nome__icontains=search) |
+            Q(descricao__icontains=search)
+        )
+    
     return render(request, 'instrumentos/modelos/lista.html', {
-        'modelos': modelos
+        'modelos': modelos,
+        'search': search
     })
 
 def novo_modelo(request):
@@ -286,9 +309,28 @@ def excluir_foto(request, pk):
 
 # Views para Marca
 def lista_marcas(request):
-    marcas = Marca.objects.all().order_by('nome')
+    marcas = Marca.objects.all()
+    
+    # Filtros
+    search = request.GET.get('search')
+    pais = request.GET.get('pais')
+    
+    if search:
+        marcas = marcas.filter(
+            Q(nome__icontains=search) |
+            Q(website__icontains=search)
+        )
+    if pais:
+        marcas = marcas.filter(pais_origem__icontains=pais)
+    
+    # Lista única de países para o filtro
+    paises = Marca.objects.values_list('pais_origem', flat=True).distinct()
+    
     return render(request, 'instrumentos/marcas/lista.html', {
-        'marcas': marcas
+        'marcas': marcas,
+        'paises': paises,
+        'search': search,
+        'selected_pais': pais
     })
 
 def nova_marca(request):
@@ -407,3 +449,131 @@ def api_novo_modelo(request):
                 'error': str(e)
             })
     return JsonResponse({'success': False, 'error': 'Método não permitido'})
+
+@login_required
+def ai_populate(request):
+    if request.method == 'POST':
+        selected_tables = request.POST.getlist('tables')
+        
+        if not selected_tables:
+            messages.warning(request, 'Selecione pelo menos uma tabela para preencher.')
+            return render(request, 'instrumentos/ai_populate.html', {'error': True})
+        
+        try:
+            api_key = os.getenv('OPENAI_API_KEY')
+            if not api_key:
+                raise ValueError("API key não encontrada")
+
+            client = openai.OpenAI(api_key=api_key)
+            
+            # Construir o prompt baseado nas tabelas selecionadas
+            prompt_parts = []
+            if 'categorias' in selected_tables:
+                prompt_parts.append("1. 10 categorias de instrumentos (nome e descrição)")
+            if 'marcas' in selected_tables:
+                prompt_parts.append("2. 20 marcas famosas (nome, país de origem e website)")
+            if 'modelos' in selected_tables:
+                prompt_parts.append("3. 30 modelos populares (nome e descrição)")
+            
+            prompt = "Gere uma lista em formato JSON com dados de instrumentos musicais contendo:\n"
+            prompt += "\n".join(prompt_parts)
+            prompt += "\n\nFormato:\n{"
+            
+            if 'categorias' in selected_tables:
+                prompt += '\n    "categorias": [{"nome": "", "descricao": ""}],'
+            if 'marcas' in selected_tables:
+                prompt += '\n    "marcas": [{"nome": "", "pais_origem": "", "website": ""}],'
+            if 'modelos' in selected_tables:
+                prompt += '\n    "modelos": [{"nome": "", "descricao": ""}],'
+            
+            prompt = prompt.rstrip(',') + "\n}"
+            
+            # Fazer a chamada para a API
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "Você é um especialista em instrumentos musicais."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            
+            # Processar a resposta
+            data = json.loads(response.choices[0].message.content)
+            
+            # Criar os registros
+            created_counts = {}
+            skipped_counts = {}
+            
+            if 'categorias' in selected_tables and 'categorias' in data:
+                count_created = 0
+                count_skipped = 0
+                for cat in data['categorias']:
+                    try:
+                        _, created = Categoria.objects.get_or_create(
+                            nome=cat['nome'],
+                            defaults={'descricao': cat['descricao']}
+                        )
+                        if created:
+                            count_created += 1
+                        else:
+                            count_skipped += 1
+                    except Exception as e:
+                        count_skipped += 1
+                created_counts['categorias'] = count_created
+                skipped_counts['categorias'] = count_skipped
+            
+            if 'marcas' in selected_tables and 'marcas' in data:
+                count_created = 0
+                count_skipped = 0
+                for marca in data['marcas']:
+                    try:
+                        _, created = Marca.objects.get_or_create(
+                            nome=marca['nome'],
+                            defaults={
+                                'pais_origem': marca['pais_origem'],
+                                'website': marca['website']
+                            }
+                        )
+                        if created:
+                            count_created += 1
+                        else:
+                            count_skipped += 1
+                    except Exception as e:
+                        count_skipped += 1
+                created_counts['marcas'] = count_created
+                skipped_counts['marcas'] = count_skipped
+            
+            if 'modelos' in selected_tables and 'modelos' in data:
+                count_created = 0
+                count_skipped = 0
+                for modelo in data['modelos']:
+                    try:
+                        _, created = Modelo.objects.get_or_create(
+                            nome=modelo['nome'],
+                            defaults={'descricao': modelo['descricao']}
+                        )
+                        if created:
+                            count_created += 1
+                        else:
+                            count_skipped += 1
+                    except Exception as e:
+                        count_skipped += 1
+                created_counts['modelos'] = count_created
+                skipped_counts['modelos'] = count_skipped
+            
+            # Criar mensagem de sucesso com detalhes
+            success_msg = "Dados gerados com sucesso!\n"
+            for table in created_counts.keys():
+                success_msg += f"\n- {table.title()}: {created_counts[table]} criados"
+                if skipped_counts[table] > 0:
+                    success_msg += f" ({skipped_counts[table]} ignorados por já existirem)"
+            
+            messages.success(request, success_msg)
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao gerar dados: {str(e)}')
+            return render(request, 'instrumentos/ai_populate.html', {'error': True})
+        
+        return redirect('ai_populate')
+    
+    return render(request, 'instrumentos/ai_populate.html')

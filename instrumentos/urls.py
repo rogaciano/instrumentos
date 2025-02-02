@@ -39,4 +39,7 @@ urlpatterns = [
     path('api/marcas/nova/', views.api_nova_marca, name='api_nova_marca'),
     path('api/categorias/nova/', views.api_nova_categoria, name='api_nova_categoria'),
     path('api/modelos/novo/', views.api_novo_modelo, name='api_novo_modelo'),
+
+    # IA
+    path('ai/', views.ai_populate, name='ai_populate'),
 ] 
