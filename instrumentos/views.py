@@ -13,6 +13,7 @@ def home(request):
     total_instrumentos = Instrumento.objects.count()
     total_categorias = Categoria.objects.count()
     total_modelos = Modelo.objects.count()
+    total_marcas = Marca.objects.count()
     
     # Calcula o valor total dos instrumentos (valor de mercado)
     valor_total_mercado = Instrumento.objects.aggregate(
@@ -23,9 +24,11 @@ def home(request):
         'total_instrumentos': total_instrumentos,
         'total_categorias': total_categorias,
         'total_modelos': total_modelos,
+        'total_marcas': total_marcas,
         'valor_total_mercado': valor_total_mercado,
     }
     return render(request, 'instrumentos/home.html', context)
+
 
 def lista_categorias(request):
     categorias = Categoria.objects.all().order_by('nome')
@@ -150,30 +153,41 @@ def excluir_modelo(request, pk):
 def lista_instrumentos(request):
     instrumentos = Instrumento.objects.all()
     
-    # Filtro por texto
-    query = request.GET.get('q')
-    if query:
-        instrumentos = instrumentos.filter(
-            Q(nome__icontains=query) |
-            Q(modelo__nome__icontains=query) |
-            Q(numero_serie__icontains=query)
-        )
-    
-    # Filtro por categoria
+    # Filtros
     categoria = request.GET.get('categoria')
+    marca = request.GET.get('marca')
+    modelo = request.GET.get('modelo')
+    estado = request.GET.get('estado')
+    search = request.GET.get('search')
+    
     if categoria:
         instrumentos = instrumentos.filter(categoria_id=categoria)
+    if marca:
+        instrumentos = instrumentos.filter(marca_id=marca)
+    if modelo:
+        instrumentos = instrumentos.filter(modelo_id=modelo)
+    if estado:
+        instrumentos = instrumentos.filter(estado_conservacao=estado)
+    if search:
+        instrumentos = instrumentos.filter(
+            Q(nome__icontains=search) |
+            Q(marca__nome__icontains=search) |
+            Q(modelo__nome__icontains=search)
+        )
     
-    # Ordenação
-    instrumentos = instrumentos.order_by('nome')
-    
-    # Categorias para o filtro
-    categorias = Categoria.objects.all().order_by('nome')
-    
-    return render(request, 'instrumentos/instrumentos/lista.html', {
+    context = {
         'instrumentos': instrumentos,
-        'categorias': categorias
-    })
+        'categorias': Categoria.objects.all(),
+        'marcas': Marca.objects.all(),
+        'modelos': Modelo.objects.all(),
+        'estados': Instrumento._meta.get_field('estado_conservacao').choices,
+        'selected_categoria': categoria,
+        'selected_marca': marca,
+        'selected_modelo': modelo,
+        'selected_estado': estado,
+        'search': search,
+    }
+    return render(request, 'instrumentos/instrumentos/lista.html', context)
 
 @login_required
 def novo_instrumento(request):

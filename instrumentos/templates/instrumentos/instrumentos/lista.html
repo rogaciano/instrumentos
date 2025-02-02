@@ -13,6 +13,64 @@
         </div>
     </div>
     <div class="card-body">
+        <!-- Filtros -->
+        <form method="get" class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <input type="text" name="search" class="form-control" placeholder="Buscar..." value="{{ search }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="categoria" class="form-select">
+                        <option value="">Categoria</option>
+                        {% for cat in categorias %}
+                        <option value="{{ cat.id }}" {% if selected_categoria|stringformat:"s" == cat.id|stringformat:"s" %}selected{% endif %}>
+                            {{ cat.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="marca" class="form-select">
+                        <option value="">Marca</option>
+                        {% for m in marcas %}
+                        <option value="{{ m.id }}" {% if selected_marca|stringformat:"s" == m.id|stringformat:"s" %}selected{% endif %}>
+                            {{ m.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="modelo" class="form-select">
+                        <option value="">Modelo</option>
+                        {% for m in modelos %}
+                        <option value="{{ m.id }}" {% if selected_modelo|stringformat:"s" == m.id|stringformat:"s" %}selected{% endif %}>
+                            {{ m.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="estado" class="form-select">
+                        <option value="">Estado</option>
+                        {% for value, label in estados %}
+                        <option value="{{ value }}" {% if selected_estado == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'lista_instrumentos' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpar
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <!-- Lista de Instrumentos -->
         {% if instrumentos %}
         <div class="table-responsive">
             <table class="table table-striped table-hover">
@@ -95,7 +153,7 @@
         </div>
         {% else %}
         <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> Nenhum instrumento cadastrado.
+            <i class="fas fa-info-circle"></i> Nenhum instrumento encontrado.
         </div>
         {% endif %}
     </div>
