@@ -26,11 +26,10 @@ class Marca(models.Model):
 
 class Modelo(models.Model):
     nome = models.CharField(max_length=100)
-    marca = models.ForeignKey(Marca, on_delete=models.CASCADE)
     descricao = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.marca} {self.nome}"
+        return self.nome
 
     class Meta:
         verbose_name = 'Modelo'

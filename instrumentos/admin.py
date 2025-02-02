@@ -13,9 +13,9 @@ class MarcaAdmin(admin.ModelAdmin):
 
 @admin.register(Modelo)
 class ModeloAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'marca')
-    search_fields = ('nome', 'marca__nome')
-    list_filter = ('marca',)
+    list_display = ('nome',)
+    search_fields = ('nome',)
+
 
 class FotoInstrumentoInline(admin.TabularInline):
     model = FotoInstrumento

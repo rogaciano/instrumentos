@@ -378,7 +378,6 @@ def api_novo_modelo(request):
         try:
             modelo = Modelo.objects.create(
                 nome=request.POST['nome'],
-                marca_id=request.POST['marca'],
                 descricao=request.POST.get('descricao', '')
             )
             return JsonResponse({
