@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Modelo{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h4>
+    </div>
+    <div class="card-body">
+        <p class="lead">Tem certeza que deseja excluir o modelo "{{ object.nome }}" da marca "{{ object.marca.nome }}"?</p>
+        
+        {% if object.instrumento_set.exists %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-circle"></i>
+            <strong>Atenção!</strong> Este modelo possui {{ object.instrumento_set.count }} instrumento(s) cadastrado(s).
+            Todos os instrumentos serão excluídos junto com o modelo.
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'modelo_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Confirmar Exclusão
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

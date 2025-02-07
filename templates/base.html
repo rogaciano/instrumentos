@@ -1,97 +1,169 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Gerenciador de Instrumentos{% endblock %}</title>
+    <title>{% block title %}Gerenciamento de Instrumentos{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    {% load static %}
-    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <style>
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .nav-link {
+            font-weight: 500;
+        }
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+        .content-wrapper {
+            margin-top: 56px;
+            min-height: calc(100vh - 56px);
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 1rem;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #212529;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+            padding: 0.5rem 1rem;
+            margin: 0.2rem 0;
+            border-radius: 0.25rem;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #343a40;
+        }
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+        }
+    </style>
 </head>
-
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">
                 <i class="fas fa-guitar"></i> Instrumentos
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
                 <ul class="navbar-nav me-auto">
-                    {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lista_instrumentos' %}">Instrumentos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lista_categorias' %}">Categorias</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lista_modelos' %}">Modelos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lista_marcas' %}">Marcas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'ai_populate' %}">
-                            <i class="fas fa-robot"></i> A.I.
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-
-                {% if user.is_authenticated %}
-                <ul class="navbar-nav">
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user"></i> {{ user.username }}
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-boxes"></i> Cadastros
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{% url 'password_change' %}">
-                                    <i class="fas fa-key"></i> Alterar Senha
-                                </a></li>
+                        <ul class="dropdown-menu">
                             <li>
-                                <hr class="dropdown-divider">
+                                <a class="dropdown-item" href="{% url 'categoria_list' %}">
+                                    <i class="fas fa-list me-2"></i> Categorias
+                                </a>
                             </li>
-                            <li><a class="dropdown-item" href="{% url 'logout' %}">
-                                    <i class="fas fa-sign-out-alt"></i> Sair
-                                </a></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'subcategoria_list' %}">
+                                    <i class="fas fa-sitemap me-2"></i> Subcategorias
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'marca_list' %}">
+                                    <i class="fas fa-trademark me-2"></i> Marcas
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'modelo_list' %}">
+                                    <i class="fas fa-tag me-2"></i> Modelos
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'instrumento_list' %}">
+                                    <i class="fas fa-guitar me-2"></i> Instrumentos
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </ul>
-                {% else %}
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">
-                            <i class="fas fa-sign-in-alt"></i> Entrar
+                        <a class="nav-link" href="/admin" target="_blank">
+                            <i class="fas fa-cog"></i> Admin
                         </a>
                     </li>
                 </ul>
-                {% endif %}
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
+    <!-- Content -->
+    <div class="content-wrapper">
+        <div class="container-fluid py-3">
+            <div class="row">
+                <!-- Sidebar -->
+                <div class="col-md-2 sidebar p-3">
+                    <h5 class="text-light mb-3">Menu</h5>
+                    <nav class="nav flex-column">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'instrumento_list' %}active{% endif %}" 
+                           href="{% url 'instrumento_list' %}">
+                           <i class="fas fa-guitar me-2"></i>Instrumentos
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'categoria_list' %}active{% endif %}" 
+                           href="{% url 'categoria_list' %}">
+                           <i class="fas fa-list me-2"></i>Categorias
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'subcategoria_list' %}active{% endif %}" 
+                           href="{% url 'subcategoria_list' %}">
+                           <i class="fas fa-sitemap me-2"></i>Subcategorias
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'modelo_list' %}active{% endif %}" 
+                           href="{% url 'modelo_list' %}">
+                           <i class="fas fa-tag me-2"></i>Modelos
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'marca_list' %}active{% endif %}" 
+                           href="{% url 'marca_list' %}">
+                           <i class="fas fa-trademark me-2"></i>Marcas
+                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'ai_populate' %}active{% endif %}" 
+                           href="{% url 'ai_populate' %}">
+                           <i class="fas fa-robot me-2"></i>A.I.
+                        </a>
+                    </nav>
+                </div>
+                
+                <!-- Main Content -->
+                <div class="col-md-10 content">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </div>
         </div>
-        {% endfor %}
-        {% endif %}
-
-        {% block content %}
-        {% endblock %}
     </div>
 
+    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
-
 </html>

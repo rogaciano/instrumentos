@@ -1,61 +1,54 @@
 from django import forms
-from .models import Instrumento, Categoria, Modelo, FotoInstrumento, Marca
-
-class InstrumentoForm(forms.ModelForm):
-    class Meta:
-        model = Instrumento
-        fields = ['nome', 'categoria', 'marca', 'modelo', 'ano_fabricacao', 
-                 'valor_aquisicao', 'valor_mercado', 'numero_serie', 'caracteristicas', 
-                 'data_aquisicao', 'estado_conservacao']
-        widgets = {
-            'nome': forms.TextInput(attrs={'class': 'form-control'}),
-            'categoria': forms.Select(attrs={'class': 'form-select'}),
-            'marca': forms.Select(attrs={'class': 'form-select'}),
-            'modelo': forms.Select(attrs={'class': 'form-select'}),
-            'ano_fabricacao': forms.NumberInput(attrs={'class': 'form-control'}),
-            'valor_aquisicao': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'valor_mercado': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'numero_serie': forms.TextInput(attrs={'class': 'form-control'}),
-            'caracteristicas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'data_aquisicao': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date',
-                'required': 'required'
-            }),
-            'estado_conservacao': forms.Select(attrs={'class': 'form-select'}),
-        }
-
-    def clean_data_aquisicao(self):
-        data = self.cleaned_data.get('data_aquisicao')
-        if not data:
-            raise forms.ValidationError('A data de aquisição é obrigatória.')
-        return data
+from .models import Categoria, Modelo, Instrumento, Marca, SubCategoria
 
 class CategoriaForm(forms.ModelForm):
     class Meta:
         model = Categoria
         fields = ['nome', 'descricao']
-        widgets = {
-            'nome': forms.TextInput(attrs={'class': 'form-control'}),
-            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-        }
+
+class SubCategoriaForm(forms.ModelForm):
+    class Meta:
+        model = SubCategoria
+        fields = ['nome', 'categoria', 'descricao']
 
 class ModeloForm(forms.ModelForm):
     class Meta:
         model = Modelo
-        fields = ['nome', 'descricao']
+        fields = ['nome', 'marca', 'subcategoria', 'descricao']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'marca': forms.Select(attrs={'class': 'form-select'}),
+            'subcategoria': forms.Select(attrs={'class': 'form-select'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
-class FotoInstrumentoForm(forms.ModelForm):
+class InstrumentoForm(forms.ModelForm):
+    marca = forms.ModelChoiceField(
+        queryset=Marca.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=False,
+        label='Marca'
+    )
+
     class Meta:
-        model = FotoInstrumento
-        fields = ['imagem', 'descricao']
+        model = Instrumento
+        fields = [
+            'codigo', 'modelo', 'numero_serie', 'ano_fabricacao',
+            'data_aquisicao', 'preco', 'valor_mercado', 'estado_conservacao',
+            'status', 'caracteristicas', 'descricao'
+        ]
         widgets = {
-            'imagem': forms.FileInput(attrs={'class': 'form-control'}),
-            'descricao': forms.TextInput(attrs={'class': 'form-control'}),
+            'codigo': forms.TextInput(attrs={'class': 'form-control'}),
+            'modelo': forms.Select(attrs={'class': 'form-select'}),
+            'numero_serie': forms.TextInput(attrs={'class': 'form-control'}),
+            'ano_fabricacao': forms.NumberInput(attrs={'class': 'form-control'}),
+            'data_aquisicao': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'preco': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'valor_mercado': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'estado_conservacao': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'caracteristicas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
 
 class MarcaForm(forms.ModelForm):
@@ -66,4 +59,4 @@ class MarcaForm(forms.ModelForm):
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
             'pais_origem': forms.TextInput(attrs={'class': 'form-control'}),
             'website': forms.URLInput(attrs={'class': 'form-control'}),
-        } 
+        }

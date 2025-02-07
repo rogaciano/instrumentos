@@ -1,45 +1,57 @@
 from django.urls import path
 from . import views
+from .views import (
+    CategoriaListView, CategoriaCreateView, CategoriaUpdateView, CategoriaDeleteView,
+    SubCategoriaListView, SubCategoriaCreateView, SubCategoriaUpdateView, SubCategoriaDeleteView,
+    MarcaListView, MarcaCreateView, MarcaUpdateView, MarcaDeleteView,
+    ModeloListView, ModeloCreateView, ModeloUpdateView, ModeloDeleteView,
+    InstrumentoListView, InstrumentoDetailView, InstrumentoCreateView, InstrumentoUpdateView, InstrumentoDeleteView,
+    FotoCreateView, FotoDeleteView
+)
 
 urlpatterns = [
     # Home
     path('', views.home, name='home'),
+    path('inicial/', views.home, name='inicial'),
 
     # Categorias
-    path('categorias/', views.lista_categorias, name='lista_categorias'),
-    path('categorias/nova/', views.nova_categoria, name='nova_categoria'),
-    path('categorias/<int:pk>/editar/', views.editar_categoria, name='editar_categoria'),
-    path('categorias/<int:pk>/excluir/', views.excluir_categoria, name='excluir_categoria'),
-    path('categorias/<int:pk>/', views.detalhe_categoria, name='detalhe_categoria'),
+    path('categorias/', CategoriaListView.as_view(), name='categoria_list'),
+    path('categorias/nova/', CategoriaCreateView.as_view(), name='categoria_create'),
+    path('categorias/<int:pk>/editar/', CategoriaUpdateView.as_view(), name='categoria_update'),
+    path('categorias/<int:pk>/excluir/', CategoriaDeleteView.as_view(), name='categoria_delete'),
 
-    # Modelos
-    path('modelos/', views.lista_modelos, name='lista_modelos'),
-    path('modelos/novo/', views.novo_modelo, name='novo_modelo'),
-    path('modelos/<int:pk>/', views.detalhe_modelo, name='detalhe_modelo'),
-    path('modelos/<int:pk>/editar/', views.editar_modelo, name='editar_modelo'),
-    path('modelos/<int:pk>/excluir/', views.excluir_modelo, name='excluir_modelo'),
-
-    # Instrumentos
-    path('instrumentos/', views.lista_instrumentos, name='lista_instrumentos'),
-    path('instrumentos/novo/', views.novo_instrumento, name='novo_instrumento'),
-    path('instrumentos/<int:pk>/', views.detalhe_instrumento, name='detalhe_instrumento'),
-    path('instrumentos/<int:pk>/editar/', views.editar_instrumento, name='editar_instrumento'),
-    path('instrumentos/<int:pk>/excluir/', views.excluir_instrumento, name='excluir_instrumento'),
-    path('instrumentos/<int:pk>/fotos/adicionar/', views.adicionar_fotos, name='adicionar_fotos'),
-    path('instrumentos/fotos/<int:pk>/excluir/', views.excluir_foto, name='excluir_foto'),
+    # SubCategorias
+    path('subcategorias/', SubCategoriaListView.as_view(), name='subcategoria_list'),
+    path('subcategorias/nova/', SubCategoriaCreateView.as_view(), name='subcategoria_create'),
+    path('subcategorias/<int:pk>/editar/', SubCategoriaUpdateView.as_view(), name='subcategoria_update'),
+    path('subcategorias/<int:pk>/excluir/', SubCategoriaDeleteView.as_view(), name='subcategoria_delete'),
 
     # Marcas
-    path('marcas/', views.lista_marcas, name='lista_marcas'),
-    path('marcas/nova/', views.nova_marca, name='nova_marca'),
-    path('marcas/<int:pk>/', views.detalhe_marca, name='detalhe_marca'),
-    path('marcas/<int:pk>/editar/', views.editar_marca, name='editar_marca'),
-    path('marcas/<int:pk>/excluir/', views.excluir_marca, name='excluir_marca'),
+    path('marcas/', MarcaListView.as_view(), name='marca_list'),
+    path('marcas/nova/', MarcaCreateView.as_view(), name='marca_create'),
+    path('marcas/<int:pk>/editar/', MarcaUpdateView.as_view(), name='marca_update'),
+    path('marcas/<int:pk>/excluir/', MarcaDeleteView.as_view(), name='marca_delete'),
 
-    # APIs para cadastro rápido
-    path('api/marcas/nova/', views.api_nova_marca, name='api_nova_marca'),
-    path('api/categorias/nova/', views.api_nova_categoria, name='api_nova_categoria'),
-    path('api/modelos/novo/', views.api_novo_modelo, name='api_novo_modelo'),
+    # Modelos
+    path('modelos/', ModeloListView.as_view(), name='modelo_list'),
+    path('modelos/novo/', ModeloCreateView.as_view(), name='modelo_create'),
+    path('modelos/<int:pk>/editar/', ModeloUpdateView.as_view(), name='modelo_update'),
+    path('modelos/<int:pk>/excluir/', ModeloDeleteView.as_view(), name='modelo_delete'),
 
-    # IA
-    path('ai/', views.ai_populate, name='ai_populate'),
-] 
+    # Instrumentos
+    path('instrumentos/', InstrumentoListView.as_view(), name='instrumento_list'),
+    path('instrumentos/novo/', InstrumentoCreateView.as_view(), name='instrumento_create'),
+    path('instrumentos/<int:pk>/', InstrumentoDetailView.as_view(), name='instrumento_detail'),
+    path('instrumentos/<int:pk>/editar/', InstrumentoUpdateView.as_view(), name='instrumento_update'),
+    path('instrumentos/<int:pk>/excluir/', InstrumentoDeleteView.as_view(), name='instrumento_delete'),
+
+    # Fotos
+    path('instrumentos/<int:instrumento_id>/fotos/nova/', FotoCreateView.as_view(), name='foto_create'),
+    path('fotos/<int:pk>/excluir/', FotoDeleteView.as_view(), name='foto_delete'),
+
+    # API
+    path('api/modelos-por-marca/<int:marca_id>/', views.modelos_por_marca, name='api_modelos_por_marca'),
+
+    # AI Populate
+    path('ai-populate/', views.ai_populate_view, name='ai_populate'),
+]

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Instrumentos{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="fas fa-guitar"></i> Instrumentos</h4>
+        <a href="{% url 'instrumento_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Novo Instrumento
+        </a>
+    </div>
+    
+    <div class="card-body">
+        <form method="get" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Pesquisar por código, modelo, marca..."
+                       value="{{ request.GET.q|default:'' }}">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="fas fa-search"></i> Pesquisar
+                </button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Modelo</th>
+                        <th>Marca</th>
+                        <th>Subcategoria</th>
+                        <th>Preço</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for instrumento in instrumentos %}
+                    <tr>
+                        <td>{{ instrumento.codigo }}</td>
+                        <td>{{ instrumento.modelo.nome }}</td>
+                        <td>{{ instrumento.modelo.marca.nome }}</td>
+                        <td>{{ instrumento.subcategoria.nome }}</td>
+                        <td>R$ {{ instrumento.preco|floatformat:2 }}</td>
+                        <td>
+                            <span class="badge {% if instrumento.status == 'disponivel' %}bg-success{% elif instrumento.status == 'vendido' %}bg-danger{% else %}bg-warning{% endif %}">
+                                {{ instrumento.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'instrumento_detail' instrumento.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'instrumento_update' instrumento.pk %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'instrumento_delete' instrumento.pk %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">Nenhum instrumento cadastrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

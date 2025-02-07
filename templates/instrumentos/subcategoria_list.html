@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Subcategorias{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="fas fa-sitemap"></i> Subcategorias</h4>
+        <a href="{% url 'subcategoria_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nova Subcategoria
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Categoria</th>
+                        <th>Descrição</th>
+                        <th>Instrumentos</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subcategoria in subcategorias %}
+                    <tr>
+                        <td>{{ subcategoria.nome }}</td>
+                        <td>{{ subcategoria.categoria.nome }}</td>
+                        <td>{{ subcategoria.descricao|truncatechars:100 }}</td>
+                        <td>{{ subcategoria.instrumento_set.count }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'subcategoria_update' subcategoria.pk %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'subcategoria_delete' subcategoria.pk %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">Nenhuma subcategoria cadastrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

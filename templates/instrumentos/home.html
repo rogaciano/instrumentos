@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Início - Gerenciamento de Instrumentos{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="display-4 mb-4">
+                    <i class="fas fa-guitar"></i> Bem-vindo ao Sistema de Gerenciamento de Instrumentos
+                </h1>
+                <p class="lead">Escolha uma das opções abaixo para começar:</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-list fa-3x mb-3 text-primary"></i>
+                <h5 class="card-title">Categorias</h5>
+                <p class="card-text">Gerencie as categorias principais dos instrumentos.</p>
+                <a href="{% url 'categoria_list' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-sitemap fa-3x mb-3 text-success"></i>
+                <h5 class="card-title">Subcategorias</h5>
+                <p class="card-text">Organize as subcategorias dos instrumentos.</p>
+                <a href="{% url 'subcategoria_list' %}" class="btn btn-success">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-guitar fa-3x mb-3 text-primary"></i>
+                <h5 class="card-title">Instrumentos</h5>
+                <p class="card-text">Gerencie o cadastro de instrumentos.</p>
+                <a href="{% url 'instrumento_list' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-trademark fa-3x mb-3 text-info"></i>
+                <h5 class="card-title">Marcas</h5>
+                <p class="card-text">Gerencie as marcas dos instrumentos.</p>
+                <a href="{% url 'marca_list' %}" class="btn btn-info">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-tag fa-3x mb-3 text-warning"></i>
+                <h5 class="card-title">Modelos</h5>
+                <p class="card-text">Cadastre os modelos dos instrumentos.</p>
+                <a href="{% url 'modelo_list' %}" class="btn btn-warning">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
