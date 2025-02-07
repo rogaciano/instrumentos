@@ -1,34 +1,49 @@
 {% extends 'base.html' %}
 
-{% block title %}Excluir Marca{% endblock %}
-
 {% block content %}
-<div class="card">
-    <div class="card-header bg-danger text-white">
-        <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h4>
-    </div>
-    <div class="card-body">
-        <p class="lead">Tem certeza que deseja excluir a marca "{{ object.nome }}"?</p>
-        
-        {% if object.modelo_set.exists %}
-        <div class="alert alert-warning">
-            <i class="fas fa-exclamation-circle"></i>
-            <strong>Atenção!</strong> Esta marca possui {{ object.modelo_set.count }} modelo(s) cadastrado(s).
-            Todos os modelos serão excluídos junto com a marca.
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">
+                <i class="fas fa-trash"></i>
+                Excluir Marca
+            </h4>
         </div>
-        {% endif %}
-
-        <form method="post">
-            {% csrf_token %}
-            <div class="d-flex justify-content-end gap-2">
-                <a href="{% url 'marca_list' %}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancelar
-                </a>
-                <button type="submit" class="btn btn-danger">
-                    <i class="fas fa-trash"></i> Confirmar Exclusão
-                </button>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <h5 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Confirmação Necessária
+                </h5>
+                <p>
+                    Você tem certeza que deseja excluir a marca <strong>{{ object.nome }}</strong>?
+                    Esta ação não pode ser desfeita.
+                </p>
+                {% if object.modelo_set.exists %}
+                <hr>
+                <p class="mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    Esta marca possui {{ object.modelo_set.count }} modelo{{ object.modelo_set.count|pluralize }} associado{{ object.modelo_set.count|pluralize }}.
+                    Todos os modelos serão mantidos, mas ficarão sem marca.
+                </p>
+                {% endif %}
             </div>
-        </form>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i>
+                        Confirmar Exclusão
+                    </button>
+                    
+                    <a href="{% url 'marca_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

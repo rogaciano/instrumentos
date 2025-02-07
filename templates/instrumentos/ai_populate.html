@@ -1,117 +1,171 @@
 {% extends 'base.html' %}
 
-{% block title %}Geração AI de Dados{% endblock %}
-
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h4 class="mb-0">
-            <i class="fas fa-robot"></i> Geração AI de Dados
-        </h4>
-    </div>
-    <div class="card-body">
-        <form method="post" class="needs-validation" novalidate>
-            {% csrf_token %}
-            
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card h-100">
-                        <div class="card-header">
-                            <h5 class="mb-0">Selecione as Tabelas</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" name="tables" value="categorias" id="checkCategorias">
-                                <label class="form-check-label" for="checkCategorias">
-                                    Categorias
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" name="tables" value="subcategorias" id="checkSubcategorias">
-                                <label class="form-check-label" for="checkSubcategorias">
-                                    Subcategorias
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" name="tables" value="marcas" id="checkMarcas">
-                                <label class="form-check-label" for="checkMarcas">
-                                    Marcas
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="tables" value="modelos" id="checkModelos">
-                                <label class="form-check-label" for="checkModelos">
-                                    Modelos
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">
+                <i class="fas fa-robot"></i>
+                Gerar Dados com IA
+            </h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
                 
-                <div class="col-md-6">
-                    <div class="card h-100">
-                        <div class="card-header">
-                            <h5 class="mb-0">Configurações</h5>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-database"></i>
+                                    Selecione os Dados
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="tables" value="categorias" id="checkCategorias">
+                                    <label class="form-check-label" for="checkCategorias">
+                                        <i class="fas fa-folder"></i>
+                                        Categorias
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="tables" value="subcategorias" id="checkSubcategorias">
+                                    <label class="form-check-label" for="checkSubcategorias">
+                                        <i class="fas fa-folder-open"></i>
+                                        Subcategorias
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="tables" value="marcas" id="checkMarcas">
+                                    <label class="form-check-label" for="checkMarcas">
+                                        <i class="fas fa-trademark"></i>
+                                        Marcas
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="tables" value="modelos" id="checkModelos">
+                                    <label class="form-check-label" for="checkModelos">
+                                        <i class="fas fa-boxes"></i>
+                                        Modelos
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="tables" value="instrumentos" id="checkInstrumentos">
+                                    <label class="form-check-label" for="checkInstrumentos">
+                                        <i class="fas fa-guitar"></i>
+                                        Instrumentos
+                                    </label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="quantidade" class="form-label">Quantidade de registros por tabela</label>
-                                <input type="number" class="form-control" id="quantidade" name="quantidade" 
-                                       min="1" max="50" value="10" required>
-                                <div class="form-text">Máximo de 50 registros por tabela.</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-cog"></i>
+                                    Configurações
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="quantidade" class="form-label">Quantidade por tipo</label>
+                                    <input type="number" class="form-control" id="quantidade" name="quantidade" 
+                                           min="1" max="50" value="10" required>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle"></i>
+                                        Máximo de 50 registros por tipo.
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                {% if results %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar"></i>
+                            Resultados
+                        </h5>
                     </div>
-                {% endfor %}
-            {% endif %}
-
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="form-text">
-                    <i class="fas fa-info-circle"></i>
-                    Os dados serão gerados respeitando as relações entre as tabelas e evitando duplicatas.
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Criados</th>
+                                        <th>Atualizados</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tipo, stats in results.items %}
+                                    <tr>
+                                        <td>
+                                            {% if tipo == 'categorias' %}
+                                                <i class="fas fa-folder"></i>
+                                            {% elif tipo == 'subcategorias' %}
+                                                <i class="fas fa-folder-open"></i>
+                                            {% elif tipo == 'marcas' %}
+                                                <i class="fas fa-trademark"></i>
+                                            {% elif tipo == 'modelos' %}
+                                                <i class="fas fa-boxes"></i>
+                                            {% elif tipo == 'instrumentos' %}
+                                                <i class="fas fa-guitar"></i>
+                                            {% endif %}
+                                            {{ tipo|title }}
+                                        </td>
+                                        <td>
+                                            {% if stats.error %}
+                                                <span class="text-danger">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    {{ stats.error }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-success">
+                                                    <i class="fas fa-plus-circle"></i>
+                                                    {{ stats.created }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if not stats.error %}
+                                                <span class="text-info">
+                                                    <i class="fas fa-sync"></i>
+                                                    {{ stats.updated }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div class="d-flex gap-2">
+                {% endif %}
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="form-text">
+                        <i class="fas fa-info-circle"></i>
+                        Os dados serão gerados respeitando as relações entre as tabelas.
+                    </div>
                     <button type="submit" class="btn btn-primary" id="btnGerar">
-                        <i class="fas fa-magic"></i> Gerar Dados
+                        <i class="fas fa-magic"></i>
+                        Gerar Dados
                     </button>
                 </div>
-            </div>
-        </form>
-
-        {% if results %}
-        <div class="mt-4">
-            <h5>Resultados da Geração:</h5>
-            <div class="table-responsive">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Tabela</th>
-                            <th>Registros Gerados</th>
-                            <th>Registros Ignorados (duplicados)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for table, stats in results.items %}
-                        <tr>
-                            <td>{{ table|title }}</td>
-                            <td>{{ stats.generated }}</td>
-                            <td>{{ stats.skipped }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            </form>
         </div>
-        {% endif %}
     </div>
 </div>
 
@@ -127,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const checked = Array.from(checkboxes).some(cb => cb.checked);
         if (!checked) {
             event.preventDefault();
-            alert('Selecione pelo menos uma tabela para gerar dados.');
+            alert('Selecione pelo menos um tipo de dado para gerar.');
             return;
         }
 
@@ -156,6 +210,16 @@ document.addEventListener('DOMContentLoaded', function() {
             checkModelos.checked = false;
         }
         checkModelos.disabled = !this.checked;
+    });
+
+    // Habilita instrumentos apenas se modelos estiver marcado
+    const checkInstrumentos = document.getElementById('checkInstrumentos');
+    
+    checkModelos.addEventListener('change', function() {
+        if (!this.checked) {
+            checkInstrumentos.checked = false;
+        }
+        checkInstrumentos.disabled = !this.checked;
     });
 });
 </script>

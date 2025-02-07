@@ -24,20 +24,53 @@
                 <h5 class="mb-3">Informações Gerais</h5>
                 <table class="table">
                     <tr>
-                        <th style="width: 150px;">Marca:</th>
+                        <th style="width: 200px;">Código:</th>
+                        <td>{{ instrumento.codigo }}</td>
+                    </tr>
+                    <tr>
+                        <th>Marca:</th>
                         <td>{{ instrumento.modelo.marca.nome }}</td>
                     </tr>
                     <tr>
+                        <th>Modelo:</th>
+                        <td>{{ instrumento.modelo.nome }}</td>
+                    </tr>
+                    <tr>
                         <th>Categoria:</th>
-                        <td>{{ instrumento.subcategoria.categoria.nome }}</td>
+                        <td>{{ instrumento.modelo.subcategoria.categoria.nome }}</td>
                     </tr>
                     <tr>
                         <th>Subcategoria:</th>
-                        <td>{{ instrumento.subcategoria.nome }}</td>
+                        <td>{{ instrumento.modelo.subcategoria.nome }}</td>
                     </tr>
                     <tr>
-                        <th>Preço:</th>
+                        <th>Número de Série:</th>
+                        <td>{{ instrumento.numero_serie|default:"Não informado" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Ano de Fabricação:</th>
+                        <td>{{ instrumento.ano_fabricacao|default:"Não informado" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Data de Aquisição:</th>
+                        <td>{{ instrumento.data_aquisicao|date:"d/m/Y"|default:"Não informada" }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h5 class="mb-3">Valores e Estado</h5>
+                <table class="table">
+                    <tr>
+                        <th style="width: 200px;">Preço:</th>
                         <td>R$ {{ instrumento.preco|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Valor de Mercado:</th>
+                        <td>R$ {{ instrumento.valor_mercado|floatformat:2|default:"Não informado" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Estado de Conservação:</th>
+                        <td>{{ instrumento.get_estado_conservacao_display }}</td>
                     </tr>
                     <tr>
                         <th>Status:</th>
@@ -48,56 +81,68 @@
                         </td>
                     </tr>
                 </table>
-            </div>
-            <div class="col-md-6">
+
+                <h5 class="mb-3 mt-4">Características</h5>
+                <p>{{ instrumento.caracteristicas|linebreaks|default:"Não informadas" }}</p>
+
                 <h5 class="mb-3">Descrição</h5>
-                <p>{{ instrumento.descricao|linebreaks|default:"Sem descrição." }}</p>
+                <p>{{ instrumento.descricao|linebreaks|default:"Sem descrição" }}</p>
             </div>
         </div>
 
-        {% if instrumento.fotoinstrumento_set.exists %}
         <div class="row mt-4">
             <div class="col-12">
-                <h5 class="mb-3">Fotos</h5>
+                <h5 class="mb-3">
+                    Fotos 
+                    <a href="{% url 'foto_create' instrumento.pk %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> Adicionar Foto
+                    </a>
+                </h5>
+                {% if instrumento.fotoinstrumento_set.exists %}
                 <div class="row">
-                    {% for foto in instrumento.fotoinstrumento_set.all %}
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <img src="{{ foto.imagem.url }}" class="card-img-top" alt="Foto do instrumento">
-                            <div class="card-body">
-                                <p class="card-text">{{ foto.descricao|default:"Sem descrição" }}</p>
-                                <form method="post" action="{% url 'foto_delete' foto.pk %}" style="display: inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-danger">
-                                        <i class="fas fa-trash"></i> Excluir
-                                    </button>
-                                </form>
+                    <div class="col-md-8 mx-auto">
+                        <div id="carouselFotos" class="carousel slide" data-bs-ride="carousel">
+                            <!-- Indicadores -->
+                            <div class="carousel-indicators">
+                                {% for foto in instrumento.fotoinstrumento_set.all %}
+                                <button type="button" data-bs-target="#carouselFotos" data-bs-slide-to="{{ forloop.counter0 }}" 
+                                    {% if forloop.first %}class="active"{% endif %} aria-current="true" 
+                                    aria-label="Foto {{ forloop.counter }}">
+                                </button>
+                                {% endfor %}
                             </div>
+
+                            <!-- Slides -->
+                            <div class="carousel-inner">
+                                {% for foto in instrumento.fotoinstrumento_set.all %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %} position-relative">
+                                    <img src="{{ foto.imagem.url }}" class="d-block w-100" alt="Foto do instrumento">
+                                    <form method="post" action="{% url 'foto_delete' instrumento.pk foto.pk %}" 
+                                          style="position: absolute; top: 10px; right: 10px;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Controles -->
+                            <button class="carousel-control-prev" type="button" data-bs-target="#carouselFotos" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Anterior</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#carouselFotos" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Próxima</span>
+                            </button>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <div class="row mt-4">
-            <div class="col-12">
-                <h5 class="mb-3">Adicionar Fotos</h5>
-                <form method="post" action="{% url 'foto_create' instrumento.pk %}" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="imagem" class="form-label">Imagem</label>
-                        <input type="file" class="form-control" id="imagem" name="imagem" accept="image/*" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="descricao" class="form-label">Descrição</label>
-                        <textarea class="form-control" id="descricao" name="descricao" rows="2"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-upload"></i> Enviar Foto
-                    </button>
-                </form>
+                {% else %}
+                <p class="text-muted">Nenhuma foto cadastrada.</p>
+                {% endif %}
             </div>
         </div>
     </div>

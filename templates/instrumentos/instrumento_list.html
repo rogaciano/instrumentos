@@ -5,12 +5,13 @@
 {% block content %}
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="mb-0"><i class="fas fa-guitar"></i> Instrumentos</h4>
+        <h4 class="mb-0">
+            <i class="fas fa-guitar"></i> Instrumentos
+        </h4>
         <a href="{% url 'instrumento_create' %}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Novo Instrumento
         </a>
     </div>
-    
     <div class="card-body">
         <form method="get" class="mb-4">
             <div class="input-group">
@@ -22,13 +23,15 @@
             </div>
         </form>
 
+        {% if instrumentos_list %}
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
                     <tr>
                         <th>Código</th>
-                        <th>Modelo</th>
                         <th>Marca</th>
+                        <th>Modelo</th>
+                        <th>Categoria</th>
                         <th>Subcategoria</th>
                         <th>Preço</th>
                         <th>Status</th>
@@ -36,12 +39,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for instrumento in instrumentos %}
+                    {% for instrumento in instrumentos_list %}
                     <tr>
                         <td>{{ instrumento.codigo }}</td>
-                        <td>{{ instrumento.modelo.nome }}</td>
                         <td>{{ instrumento.modelo.marca.nome }}</td>
-                        <td>{{ instrumento.subcategoria.nome }}</td>
+                        <td>{{ instrumento.modelo.nome }}</td>
+                        <td>{{ instrumento.modelo.subcategoria.categoria.nome }}</td>
+                        <td>{{ instrumento.modelo.subcategoria.nome }}</td>
                         <td>R$ {{ instrumento.preco|floatformat:2 }}</td>
                         <td>
                             <span class="badge {% if instrumento.status == 'disponivel' %}bg-success{% elif instrumento.status == 'vendido' %}bg-danger{% else %}bg-warning{% endif %}">
@@ -62,14 +66,15 @@
                             </div>
                         </td>
                     </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center">Nenhum instrumento cadastrado.</td>
-                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+        {% else %}
+        <tr>
+            <td colspan="8" class="text-center">Nenhum instrumento cadastrado.</td>
+        </tr>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -16,8 +16,9 @@ class SubCategoriaAdmin(admin.ModelAdmin):
 
 @admin.register(Marca)
 class MarcaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'pais_origem', 'website')
-    search_fields = ('nome', 'pais_origem')
+    list_display = ('nome', 'site')
+    search_fields = ('nome', 'descricao')
+    list_filter = ('site',)
 
 @admin.register(Modelo)
 class ModeloAdmin(admin.ModelAdmin):

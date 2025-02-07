@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ subcategoria.nome }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="fas fa-sitemap"></i> {{ subcategoria.nome }}
+            <small class="text-muted">{{ subcategoria.categoria.nome }}</small>
+        </h4>
+        <div>
+            <a href="{% url 'subcategoria_update' subcategoria.pk %}" class="btn btn-info">
+                <i class="fas fa-edit"></i> Editar Subcategoria
+            </a>
+            <a href="{% url 'subcategoria_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Detalhes da Subcategoria -->
+        <div class="mb-4">
+            <h5 class="card-title">Descrição</h5>
+            <p class="card-text">{{ subcategoria.descricao|default:"Nenhuma descrição fornecida." }}</p>
+        </div>
+
+        <!-- Lista de Modelos -->
+        <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title mb-0">Modelos</h5>
+                <a href="{% url 'modelo_create' %}?subcategoria={{ subcategoria.pk }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Novo Modelo
+                </a>
+            </div>
+
+            {% if modelos %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Marca</th>
+                            <th>Descrição</th>
+                            <th>Instrumentos</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for modelo in modelos %}
+                        <tr>
+                            <td>{{ modelo.nome }}</td>
+                            <td>{{ modelo.marca.nome }}</td>
+                            <td>{{ modelo.descricao|truncatechars:100 }}</td>
+                            <td>{{ modelo.instrumento_set.count }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'modelo_detail' modelo.pk %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'modelo_update' modelo.pk %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'modelo_delete' modelo.pk %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Nenhum modelo cadastrado para esta subcategoria.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

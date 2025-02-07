@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h1 class="display-4">
+                        <i class="fas fa-guitar"></i>
+                        Controle de Instrumentos
+                    </h1>
+                    <p class="lead text-muted">
+                        Sistema para gerenciamento de instrumentos musicais
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h3 class="display-4 text-primary">{{ total_instrumentos }}</h3>
+                    <h5 class="card-title">
+                        <i class="fas fa-guitar"></i>
+                        Instrumentos
+                    </h5>
+                    <a href="{% url 'instrumento_list' %}" class="btn btn-outline-primary">
+                        Ver Todos
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h3 class="display-4 text-success">{{ total_marcas }}</h3>
+                    <h5 class="card-title">
+                        <i class="fas fa-trademark"></i>
+                        Marcas
+                    </h5>
+                    <a href="{% url 'marca_list' %}" class="btn btn-outline-success">
+                        Ver Todas
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h3 class="display-4 text-info">{{ total_modelos }}</h3>
+                    <h5 class="card-title">
+                        <i class="fas fa-boxes"></i>
+                        Modelos
+                    </h5>
+                    <a href="{% url 'modelo_list' %}" class="btn btn-outline-info">
+                        Ver Todos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if instrumentos_recentes %}
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">
+                <i class="fas fa-clock"></i>
+                Instrumentos Recentes
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Instrumento</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Data Cadastro</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for instrumento in instrumentos_recentes %}
+                        <tr>
+                            <td>{{ instrumento.numero_serie }}</td>
+                            <td>{{ instrumento.modelo.marca.nome }}</td>
+                            <td>{{ instrumento.modelo.nome }}</td>
+                            <td>{{ instrumento.data_cadastro|date:"d/m/Y" }}</td>
+                            <td>
+                                <a href="{% url 'instrumento_detail' instrumento.pk %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                    Ver
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

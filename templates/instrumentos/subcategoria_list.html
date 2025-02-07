@@ -11,6 +11,37 @@
         </a>
     </div>
     <div class="card-body">
+        <!-- Campo de Pesquisa -->
+        <form method="get" class="mb-4">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" 
+                               placeholder="Pesquisar por nome ou descrição..."
+                               value="{{ request.GET.q|default:'' }}">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="fas fa-search"></i> Pesquisar
+                        </button>
+                        {% if request.GET.q or request.GET.categoria %}
+                            <a href="{% url 'subcategoria_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Limpar
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <select name="categoria" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todas as Categorias</option>
+                        {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}" {% if request.GET.categoria|add:"0" == categoria.id %}selected{% endif %}>
+                                {{ categoria.nome }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </form>
+
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
@@ -18,7 +49,7 @@
                         <th>Nome</th>
                         <th>Categoria</th>
                         <th>Descrição</th>
-                        <th>Instrumentos</th>
+                        <th>Modelos</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -28,9 +59,12 @@
                         <td>{{ subcategoria.nome }}</td>
                         <td>{{ subcategoria.categoria.nome }}</td>
                         <td>{{ subcategoria.descricao|truncatechars:100 }}</td>
-                        <td>{{ subcategoria.instrumento_set.count }}</td>
+                        <td>{{ subcategoria.modelos.count }}</td>
                         <td>
                             <div class="btn-group" role="group">
+                                <a href="{% url 'subcategoria_detail' subcategoria.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
                                 <a href="{% url 'subcategoria_update' subcategoria.pk %}" class="btn btn-sm btn-info">
                                     <i class="fas fa-edit"></i>
                                 </a>
@@ -42,12 +76,59 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center">Nenhuma subcategoria cadastrada.</td>
+                        <td colspan="5" class="text-center">
+                            {% if request.GET.q %}
+                                Nenhuma subcategoria encontrada para "{{ request.GET.q }}".
+                            {% elif request.GET.categoria %}
+                                Nenhuma subcategoria encontrada para esta categoria.
+                            {% else %}
+                                Nenhuma subcategoria cadastrada.
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <!-- Paginação -->
+        {% if is_paginated %}
+        <nav aria-label="Navegação de páginas" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

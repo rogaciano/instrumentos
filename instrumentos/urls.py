@@ -1,27 +1,30 @@
 from django.urls import path
 from . import views
 from .views import (
-    CategoriaListView, CategoriaCreateView, CategoriaUpdateView, CategoriaDeleteView,
-    SubCategoriaListView, SubCategoriaCreateView, SubCategoriaUpdateView, SubCategoriaDeleteView,
+    CategoriaListView, CategoriaDetailView, CategoriaCreateView, CategoriaUpdateView, CategoriaDeleteView,
+    SubCategoriaListView, SubCategoriaDetailView, SubCategoriaCreateView, SubCategoriaUpdateView, SubCategoriaDeleteView,
     MarcaListView, MarcaCreateView, MarcaUpdateView, MarcaDeleteView,
-    ModeloListView, ModeloCreateView, ModeloUpdateView, ModeloDeleteView,
+    ModeloListView, ModeloDetailView, ModeloCreateView, ModeloUpdateView, ModeloDeleteView,
     InstrumentoListView, InstrumentoDetailView, InstrumentoCreateView, InstrumentoUpdateView, InstrumentoDeleteView,
-    FotoCreateView, FotoDeleteView
+    FotoCreateView, FotoDeleteView,
+    HomeView
 )
 
 urlpatterns = [
     # Home
-    path('', views.home, name='home'),
-    path('inicial/', views.home, name='inicial'),
+    path('', HomeView.as_view(), name='home'),
+    path('inicial/', views.index, name='inicial'),
 
     # Categorias
     path('categorias/', CategoriaListView.as_view(), name='categoria_list'),
-    path('categorias/nova/', CategoriaCreateView.as_view(), name='categoria_create'),
+    path('categorias/<int:pk>/', CategoriaDetailView.as_view(), name='categoria_detail'),
+    path('categorias/criar/', CategoriaCreateView.as_view(), name='categoria_create'),
     path('categorias/<int:pk>/editar/', CategoriaUpdateView.as_view(), name='categoria_update'),
     path('categorias/<int:pk>/excluir/', CategoriaDeleteView.as_view(), name='categoria_delete'),
 
     # SubCategorias
     path('subcategorias/', SubCategoriaListView.as_view(), name='subcategoria_list'),
+    path('subcategorias/<int:pk>/', SubCategoriaDetailView.as_view(), name='subcategoria_detail'),
     path('subcategorias/nova/', SubCategoriaCreateView.as_view(), name='subcategoria_create'),
     path('subcategorias/<int:pk>/editar/', SubCategoriaUpdateView.as_view(), name='subcategoria_update'),
     path('subcategorias/<int:pk>/excluir/', SubCategoriaDeleteView.as_view(), name='subcategoria_delete'),
@@ -34,6 +37,7 @@ urlpatterns = [
 
     # Modelos
     path('modelos/', ModeloListView.as_view(), name='modelo_list'),
+    path('modelos/<int:pk>/', ModeloDetailView.as_view(), name='modelo_detail'),
     path('modelos/novo/', ModeloCreateView.as_view(), name='modelo_create'),
     path('modelos/<int:pk>/editar/', ModeloUpdateView.as_view(), name='modelo_update'),
     path('modelos/<int:pk>/excluir/', ModeloDeleteView.as_view(), name='modelo_delete'),
@@ -46,11 +50,11 @@ urlpatterns = [
     path('instrumentos/<int:pk>/excluir/', InstrumentoDeleteView.as_view(), name='instrumento_delete'),
 
     # Fotos
-    path('instrumentos/<int:instrumento_id>/fotos/nova/', FotoCreateView.as_view(), name='foto_create'),
-    path('fotos/<int:pk>/excluir/', FotoDeleteView.as_view(), name='foto_delete'),
+    path('instrumentos/<int:instrumento_pk>/fotos/nova/', FotoCreateView.as_view(), name='foto_create'),
+    path('instrumentos/<int:instrumento_pk>/fotos/<int:pk>/excluir/', FotoDeleteView.as_view(), name='foto_delete'),
 
     # API
-    path('api/modelos-por-marca/<int:marca_id>/', views.modelos_por_marca, name='api_modelos_por_marca'),
+    path('api/modelos-por-marca/<int:marca_id>/', views.modelos_por_marca, name='modelos_por_marca'),
 
     # AI Populate
     path('ai-populate/', views.ai_populate_view, name='ai_populate'),

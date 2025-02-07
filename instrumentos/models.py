@@ -34,17 +34,25 @@ class SubCategoria(models.Model):
         ]
 
 class Marca(models.Model):
-    nome = models.CharField(max_length=100, unique=True)
-    pais_origem = models.CharField(max_length=100, blank=True)
-    website = models.URLField(blank=True)
+    nome = models.CharField(max_length=100)
+    descricao = models.TextField(blank=True, null=True)
+    pais_origem = models.CharField(max_length=100, blank=True, null=True)
+    logotipo = models.ImageField(
+        upload_to='logos/', 
+        blank=True, 
+        null=True,
+        help_text='Upload de logotipo da marca. Recomendado: PNG com fundo transparente, mínimo 300x300 pixels.'
 
-    def __str__(self):
-        return self.nome
-
+    )
+    site = models.URLField(blank=True, null=True, help_text='Site oficial da marca')
+    
     class Meta:
+        ordering = ['nome']
         verbose_name = 'Marca'
         verbose_name_plural = 'Marcas'
-        ordering = ['nome']
+    
+    def __str__(self):
+        return self.nome
 
 class Modelo(models.Model):
     nome = models.CharField(max_length=100)

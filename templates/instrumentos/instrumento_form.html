@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ object.pk|yesno:"Editar,Novo" }} Instrumento{% endblock %}
+{% block title %}{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Instrumento{% endblock %}
 
 {% block content %}
 <div class="card">
     <div class="card-header">
         <h4 class="mb-0">
-            <i class="fas fa-{{ object.pk|yesno:"edit,plus" }}"></i>
-            {{ object.pk|yesno:"Editar,Novo" }} Instrumento
+            <i class="fas fa-guitar"></i> 
+            {% if form.instance.pk %}Editar{% else %}Novo{% endif %} Instrumento
         </h4>
     </div>
     <div class="card-body">
-        <form method="post" class="needs-validation" novalidate>
+        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
             {% csrf_token %}
             
             <div class="row">
@@ -43,9 +43,6 @@
                         <div class="invalid-feedback">
                             {{ form.marca.errors|join:", " }}
                         </div>
-                        {% endif %}
-                        {% if form.marca.help_text %}
-                        <div class="form-text">{{ form.marca.help_text }}</div>
                         {% endif %}
                     </div>
 
@@ -196,6 +193,14 @@
                     </div>
                 </div>
             </div>
+
+            {% if not form.instance.pk %}
+            <div class="mb-3">
+                <label for="fotos" class="form-label">Fotos</label>
+                <input type="file" name="fotos" id="fotos" class="form-control" multiple accept="image/*">
+                <div class="form-text">Você pode selecionar múltiplas fotos (opcional). Tamanho máximo: 5MB por foto.</div>
+            </div>
+            {% endif %}
 
             <div class="d-flex justify-content-end gap-2">
                 <a href="{% url 'instrumento_list' %}" class="btn btn-secondary">

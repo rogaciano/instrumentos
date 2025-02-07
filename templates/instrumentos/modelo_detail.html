@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ modelo.nome }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="fas fa-cube"></i> {{ modelo.nome }}
+            <small class="text-muted">{{ modelo.marca.nome }}</small>
+        </h4>
+        <div>
+            <a href="{% url 'modelo_update' modelo.pk %}" class="btn btn-info">
+                <i class="fas fa-edit"></i> Editar Modelo
+            </a>
+            <a href="{% url 'subcategoria_detail' modelo.subcategoria.pk %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Detalhes do Modelo -->
+        <div class="mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="card-title">Descrição</h5>
+                    <p class="card-text">{{ modelo.descricao|default:"Nenhuma descrição fornecida." }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="card-title">Categoria</h5>
+                    <p class="card-text">
+                        {{ modelo.subcategoria.categoria.nome }} > {{ modelo.subcategoria.nome }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Instrumentos -->
+        <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title mb-0">Instrumentos</h5>
+                <a href="{% url 'instrumento_create' %}?modelo={{ modelo.pk }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Novo Instrumento
+                </a>
+            </div>
+
+            {% if instrumentos %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nº Série</th>
+                            <th>Status</th>
+                            <th>Estado</th>
+                            <th>Ano</th>
+                            <th>Valor</th>
+                            <th>Fotos</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for instrumento in instrumentos %}
+                        <tr>
+                            <td>{{ instrumento.numero_serie }}</td>
+                            <td>
+                                <span class="badge {% if instrumento.status == 'disponivel' %}bg-success{% elif instrumento.status == 'reservado' %}bg-warning{% elif instrumento.status == 'manutencao' %}bg-info{% else %}bg-danger{% endif %}">
+                                    {% if instrumento.status == 'disponivel' %}
+                                        Disponível
+                                    {% elif instrumento.status == 'reservado' %}
+                                        Reservado
+                                    {% elif instrumento.status == 'manutencao' %}
+                                        Em Manutenção
+                                    {% else %}
+                                        Vendido
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if instrumento.estado_conservacao == 'novo' %}
+                                    Novo
+                                {% elif instrumento.estado_conservacao == 'excelente' %}
+                                    Excelente
+                                {% elif instrumento.estado_conservacao == 'muito_bom' %}
+                                    Muito Bom
+                                {% elif instrumento.estado_conservacao == 'bom' %}
+                                    Bom
+                                {% elif instrumento.estado_conservacao == 'regular' %}
+                                    Regular
+                                {% else %}
+                                    Ruim
+                                {% endif %}
+                            </td>
+                            <td>{{ instrumento.ano_fabricacao|default:"-" }}</td>
+                            <td>{% if instrumento.valor_mercado %}R$ {{ instrumento.valor_mercado|floatformat:2 }}{% else %}-{% endif %}</td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    {{ instrumento.fotoinstrumento_set.count }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'instrumento_detail' instrumento.pk %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'instrumento_update' instrumento.pk %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'instrumento_delete' instrumento.pk %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Nenhum instrumento cadastrado para este modelo.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

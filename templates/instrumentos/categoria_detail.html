@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ categoria.nome }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="fas fa-tag"></i> {{ categoria.nome }}
+        </h4>
+        <div>
+            <a href="{% url 'categoria_update' categoria.pk %}" class="btn btn-info">
+                <i class="fas fa-edit"></i> Editar Categoria
+            </a>
+            <a href="{% url 'categoria_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Detalhes da Categoria -->
+        <div class="mb-4">
+            <h5 class="card-title">Descrição</h5>
+            <p class="card-text">{{ categoria.descricao|default:"Nenhuma descrição fornecida." }}</p>
+        </div>
+
+        <!-- Lista de Subcategorias -->
+        <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title mb-0">Subcategorias</h5>
+                <a href="{% url 'subcategoria_create' %}?categoria={{ categoria.pk }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Nova Subcategoria
+                </a>
+            </div>
+
+            {% if subcategorias %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Descrição</th>
+                            <th>Modelos</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subcategoria in subcategorias %}
+                        <tr>
+                            <td>{{ subcategoria.nome }}</td>
+                            <td>{{ subcategoria.descricao|truncatechars:100 }}</td>
+                            <td>{{ subcategoria.modelos.count }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'subcategoria_detail' subcategoria.pk %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'subcategoria_update' subcategoria.pk %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'subcategoria_delete' subcategoria.pk %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Nenhuma subcategoria cadastrada para esta categoria.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

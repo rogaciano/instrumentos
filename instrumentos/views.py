@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db.models import Q, Count
+from django.db.models import Count, Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Instrumento, Categoria, Modelo, FotoInstrumento, Marca, SubCategoria
 from .forms import CategoriaForm, ModeloForm, InstrumentoCreateForm, MarcaForm, SubCategoriaForm
@@ -90,6 +90,17 @@ class CategoriaListView(ListView):
     template_name = 'instrumentos/categoria_list.html'
     context_object_name = 'categorias'
     ordering = ['nome']
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Filtro por texto (nome ou descrição)
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(nome__icontains=q) | queryset.filter(descricao__icontains=q)
+        
+        return queryset.order_by('nome')
 
 class CategoriaCreateView(CreateView):
     model = Categoria
@@ -120,11 +131,47 @@ class CategoriaDeleteView(DeleteView):
         messages.success(request, 'Categoria excluída com sucesso!')
         return super().delete(request, *args, **kwargs)
 
+class CategoriaDetailView(DetailView):
+    model = Categoria
+    template_name = 'instrumentos/categoria_detail.html'
+    context_object_name = 'categoria'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Ordenar subcategorias por nome
+        context['subcategorias'] = self.object.subcategorias.order_by('nome')
+        return context
+
 class SubCategoriaListView(ListView):
     model = SubCategoria
     template_name = 'instrumentos/subcategoria_list.html'
     context_object_name = 'subcategorias'
     ordering = ['categoria__nome', 'nome']
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Filtro por texto (nome ou descrição)
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(
+                Q(nome__icontains=q) | 
+                Q(descricao__icontains=q) |
+                Q(categoria__nome__icontains=q)
+            )
+        
+        # Filtro por categoria
+        categoria_id = self.request.GET.get('categoria')
+        if categoria_id:
+            queryset = queryset.filter(categoria_id=categoria_id)
+        
+        return queryset.select_related('categoria').order_by('categoria__nome', 'nome')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categorias'] = Categoria.objects.order_by('nome')
+        return context
 
 class SubCategoriaCreateView(CreateView):
     model = SubCategoria
@@ -155,11 +202,39 @@ class SubCategoriaDeleteView(DeleteView):
         messages.success(request, 'Subcategoria excluída com sucesso!')
         return super().delete(request, *args, **kwargs)
 
+class SubCategoriaDetailView(DetailView):
+    model = SubCategoria
+    template_name = 'instrumentos/subcategoria_detail.html'
+    context_object_name = 'subcategoria'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Ordenar modelos por nome
+        context['modelos'] = self.object.modelos.select_related('marca').order_by('marca__nome', 'nome')
+        return context
+
 class MarcaListView(ListView):
     model = Marca
     template_name = 'instrumentos/marca_list.html'
     context_object_name = 'marcas'
     ordering = ['nome']
+    paginate_by = 12
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        q = self.request.GET.get('q')
+        if q:
+            return queryset.filter(
+                Q(nome__icontains=q) |
+                Q(descricao__icontains=q) |
+                Q(pais_origem__icontains=q)
+            )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        return context
 
 class MarcaCreateView(LoginRequiredMixin, CreateView):
     model = Marca
@@ -291,6 +366,19 @@ class ModeloDeleteView(DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Modelo excluído com sucesso!')
         return super().delete(request, *args, **kwargs)
+
+class ModeloDetailView(DetailView):
+    model = Modelo
+    template_name = 'instrumentos/modelo_detail.html'
+    context_object_name = 'modelo'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Ordenar instrumentos por número de série e incluir fotos
+        context['instrumentos'] = self.object.instrumento_set.prefetch_related(
+            'fotoinstrumento_set'
+        ).order_by('numero_serie')
+        return context
 
 class InstrumentoListView(ListView):
     model = Instrumento

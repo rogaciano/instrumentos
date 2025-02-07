@@ -1,96 +1,95 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ object.pk|yesno:"Editar,Nova" }} Marca{% endblock %}
-
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h4 class="mb-0">
-            <i class="fas fa-{{ object.pk|yesno:"edit,plus" }}"></i>
-            {{ object.pk|yesno:"Editar,Nova" }} Marca
-        </h4>
-    </div>
-    <div class="card-body">
-        <form method="post" class="needs-validation" novalidate>
-            {% csrf_token %}
-            
-            <div class="mb-3">
-                <label for="{{ form.nome.id_for_label }}" class="form-label">Nome</label>
-                <input type="text" class="form-control {% if form.nome.errors %}is-invalid{% endif %}"
-                       id="{{ form.nome.id_for_label }}" name="{{ form.nome.name }}"
-                       value="{{ form.nome.value|default:'' }}" required>
-                {% if form.nome.errors %}
-                <div class="invalid-feedback">
-                    {{ form.nome.errors|join:", " }}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">
+                <i class="fas fa-trademark"></i>
+                {% if form.instance.pk %}
+                    Editar Marca
+                {% else %}
+                    Nova Marca
+                {% endif %}
+            </h4>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Por favor, corrija os erros abaixo:
+                    </h5>
+                    {{ form.errors }}
                 </div>
                 {% endif %}
-            </div>
-
-            <div class="mb-3">
-                <label for="{{ form.pais_origem.id_for_label }}" class="form-label">País de Origem</label>
-                <input type="text" class="form-control {% if form.pais_origem.errors %}is-invalid{% endif %}"
-                       id="{{ form.pais_origem.id_for_label }}" name="{{ form.pais_origem.name }}"
-                       value="{{ form.pais_origem.value|default:'' }}">
-                {% if form.pais_origem.errors %}
-                <div class="invalid-feedback">
-                    {{ form.pais_origem.errors|join:", " }}
+                
+                <div class="mb-3">
+                    <label for="{{ form.nome.id_for_label }}" class="form-label">Nome da Marca</label>
+                    {{ form.nome }}
+                    {% if form.nome.help_text %}
+                    <div class="form-text">{{ form.nome.help_text }}</div>
+                    {% endif %}
                 </div>
-                {% endif %}
-            </div>
-
-            <div class="mb-3">
-                <label for="{{ form.website.id_for_label }}" class="form-label">Website</label>
-                <input type="url" class="form-control {% if form.website.errors %}is-invalid{% endif %}"
-                       id="{{ form.website.id_for_label }}" name="{{ form.website.name }}"
-                       value="{{ form.website.value|default:'' }}" placeholder="https://">
-                {% if form.website.errors %}
-                <div class="invalid-feedback">
-                    {{ form.website.errors|join:", " }}
+                
+                <div class="mb-3">
+                    <label for="{{ form.descricao.id_for_label }}" class="form-label">Descrição</label>
+                    {{ form.descricao }}
+                    {% if form.descricao.help_text %}
+                    <div class="form-text">{{ form.descricao.help_text }}</div>
+                    {% endif %}
                 </div>
-                {% endif %}
-            </div>
-
-            <div class="mb-3">
-                <label for="{{ form.descricao.id_for_label }}" class="form-label">Descrição</label>
-                <textarea class="form-control {% if form.descricao.errors %}is-invalid{% endif %}"
-                          id="{{ form.descricao.id_for_label }}" name="{{ form.descricao.name }}"
-                          rows="3">{{ form.descricao.value|default:'' }}</textarea>
-                {% if form.descricao.errors %}
-                <div class="invalid-feedback">
-                    {{ form.descricao.errors|join:", " }}
+                
+                <div class="mb-3">
+                    <label for="{{ form.site.id_for_label }}" class="form-label">Site Oficial</label>
+                    {{ form.site }}
+                    {% if form.site.help_text %}
+                    <div class="form-text">{{ form.site.help_text }}</div>
+                    {% endif %}
                 </div>
-                {% endif %}
-            </div>
-
-            <div class="d-flex justify-content-end gap-2">
-                <a href="{% url 'marca_list' %}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancelar
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Salvar
-                </button>
-            </div>
-        </form>
+                
+                <div class="mb-4">
+                    <label for="{{ form.logotipo.id_for_label }}" class="form-label">Logotipo</label>
+                    
+                    {% if form.instance.logotipo %}
+                    <div class="mb-2">
+                        <img src="{{ form.instance.logotipo.url }}" 
+                             alt="Logotipo atual" 
+                             class="img-thumbnail"
+                             style="max-height: 100px;">
+                        <p class="text-muted mt-1">
+                            <small>Logotipo atual. Faça upload de uma nova imagem para substituir.</small>
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <input type="file" 
+                           name="{{ form.logotipo.name }}"
+                           class="form-control" 
+                           accept="image/*"
+                           id="{{ form.logotipo.id_for_label }}">
+                    
+                    {% if form.logotipo.help_text %}
+                    <div class="form-text">{{ form.logotipo.help_text }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Salvar
+                    </button>
+                    
+                    <a href="{% url 'marca_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
-
-{% block extra_js %}
-<script>
-// Validação do formulário
-(function () {
-    'use strict'
-    var forms = document.querySelectorAll('.needs-validation')
-    Array.prototype.slice.call(forms)
-        .forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                form.classList.add('was-validated')
-            }, false)
-        })
-})()
-</script>
-{% endblock %}
 {% endblock %}

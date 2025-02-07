@@ -1,43 +1,59 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card mt-5">
-            <div class="card-header text-center">
-                <h4><i class="fas fa-lock"></i> Login</h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </h4>
+                </div>
+                <div class="card-body">
                     {% if form.errors %}
                     <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Usuário ou senha inválidos.
+                        <h5 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Erro no Login
+                        </h5>
+                        <p>Usuário ou senha incorretos. Por favor, tente novamente.</p>
                     </div>
                     {% endif %}
 
-                    <div class="mb-3">
-                        <label for="id_username" class="form-label">Usuário</label>
-                        <input type="text" name="username" class="form-control" id="id_username" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="id_password" class="form-label">Senha</label>
-                        <input type="password" name="password" class="form-control" id="id_password" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-sign-in-alt"></i> Entrar
-                    </button>
-
-                    <div class="text-center mt-3">
-                        <a href="{% url 'register' %}" class="text-decoration-none">
-                            Criar nova conta
-                        </a>
-                    </div>
-                </form>
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">Usuário</label>
+                            <input type="text" 
+                                   name="username" 
+                                   id="id_username" 
+                                   class="form-control" 
+                                   required 
+                                   autofocus>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="id_password" class="form-label">Senha</label>
+                            <input type="password" 
+                                   name="password" 
+                                   id="id_password" 
+                                   class="form-control" 
+                                   required>
+                        </div>
+                        
+                        <input type="hidden" name="next" value="{{ next }}">
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Entrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
