@@ -63,8 +63,7 @@ LOGGING = {
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 print(f"Loaded OPENAI_API_KEY from .env: {OPENAI_API_KEY[:6]}...{OPENAI_API_KEY[-4:] if OPENAI_API_KEY else 'None'}")
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '144.202.29.245']
 
 # Application definition
 
