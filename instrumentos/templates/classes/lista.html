@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Classes de Instrumentos</h2>
+        <a href="{% url 'instrumentos:classe_create' %}" class="btn btn-primary">Nova Classe</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for classe in classes %}
+                <tr>
+                    <td>{{ classe.nome }}</td>
+                    <td>
+                        <a href="{% url 'instrumentos:classe_update' classe.pk %}"
+                            class="btn btn-sm btn-warning">Editar</a>
+                        <a href="{% url 'instrumentos:classe_delete' classe.pk %}"
+                            class="btn btn-sm btn-danger">Excluir</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">Nenhuma classe cadastrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
