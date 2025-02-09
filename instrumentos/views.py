@@ -574,6 +574,35 @@ def modelos_por_marca(request, marca_id):
     modelos = Modelo.objects.filter(marca_id=marca_id).values('id', 'nome')
     return JsonResponse(list(modelos), safe=False)
 
+def modelo_create_ajax(request):
+    if request.method == 'POST' and request.is_ajax():
+        try:
+            nome = request.POST.get('nome')
+            marca_id = request.POST.get('marca')
+            descricao = request.POST.get('descricao')
+
+            marca = get_object_or_404(Marca, pk=marca_id)
+            modelo = Modelo.objects.create(
+                nome=nome,
+                marca=marca,
+                descricao=descricao
+            )
+
+            return JsonResponse({
+                'success': True,
+                'modelo_id': modelo.id
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Método não permitido'
+    })
+
 def generate_data(prompt, quantidade=10):
     """
     Gera dados usando a OpenAI API

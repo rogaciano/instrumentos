@@ -56,6 +56,7 @@ urlpatterns = [
 
     # API
     path('api/modelos-por-marca/<int:marca_id>/', views.modelos_por_marca, name='modelos_por_marca'),
+    path('api/modelo/create/', views.modelo_create_ajax, name='modelo_create_ajax'),
 
     # AI Populate
     path('ai-populate/', views.ai_populate_view, name='ai_populate'),

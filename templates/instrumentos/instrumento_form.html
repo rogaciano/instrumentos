@@ -17,7 +17,179 @@
                 {% csrf_token %}
                 
                 <!-- Campos básicos do instrumento -->
-                {{ form.as_p }}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.nome.label_tag }}
+                            {{ form.nome }}
+                            {% if form.nome.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.nome.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.numero_serie.label_tag }}
+                            {{ form.numero_serie }}
+                            {% if form.numero_serie.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.numero_serie.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.categoria.label_tag }}
+                            {{ form.categoria }}
+                            {% if form.categoria.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.categoria.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.subcategoria.label_tag }}
+                            {{ form.subcategoria }}
+                            {% if form.subcategoria.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.subcategoria.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.marca.label_tag }}
+                            {{ form.marca }}
+                            {% if form.marca.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.marca.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="d-flex align-items-end">
+                                <div class="flex-grow-1">
+                                    {{ form.modelo.label_tag }}
+                                    {{ form.modelo }}
+                                    {% if form.modelo.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.modelo.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="ms-2">
+                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#novoModeloModal">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.preco.label_tag }}
+                            {{ form.preco }}
+                            {% if form.preco.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.preco.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.data_aquisicao.label_tag }}
+                            {{ form.data_aquisicao }}
+                            {% if form.data_aquisicao.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.data_aquisicao.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="form-group">
+                            {{ form.descricao.label_tag }}
+                            {{ form.descricao }}
+                            {% if form.descricao.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.descricao.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campos adicionais -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.estado.label_tag }}
+                            {{ form.estado }}
+                            {% if form.estado.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.estado.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.status.label_tag }}
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.status.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.valor_venda.label_tag }}
+                            {{ form.valor_venda }}
+                            {% if form.valor_venda.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.valor_venda.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.data_venda.label_tag }}
+                            {{ form.data_venda }}
+                            {% if form.data_venda.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.data_venda.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Seção de Fotos -->
                 <div class="card mt-4">
@@ -101,58 +273,163 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Novo Modelo -->
+<div class="modal fade" id="novoModeloModal" tabindex="-1" aria-labelledby="novoModeloModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="novoModeloModalLabel">Novo Modelo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovoModelo">
+                    <div class="mb-3">
+                        <label for="modeloNome" class="form-label">Nome do Modelo</label>
+                        <input type="text" class="form-control" id="modeloNome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modeloMarca" class="form-label">Marca</label>
+                        <select class="form-select" id="modeloMarca" required>
+                            <option value="">Selecione uma marca...</option>
+                            {% for marca in form.fields.marca.queryset %}
+                                <option value="{{ marca.id }}">{{ marca.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modeloDescricao" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="modeloDescricao" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnSalvarModelo">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    $(document).ready(function() {
-        // Preview para upload múltiplo
-        $('#id_imagens_multiplas').change(function() {
-            var previewDiv = $('#multiple-preview');
-            previewDiv.empty();
+    document.addEventListener('DOMContentLoaded', function() {
+        // Função para atualizar o select de modelos
+        function atualizarModelos(marcaId, modeloId = null) {
+            fetch(`/api/modelos-por-marca/${marcaId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const modeloSelect = document.getElementById('{{ form.modelo.auto_id }}');
+                    modeloSelect.innerHTML = '<option value="">---------</option>';
+                    data.forEach(modelo => {
+                        const option = new Option(modelo.nome, modelo.id);
+                        modeloSelect.add(option);
+                    });
+                    if (modeloId) {
+                        modeloSelect.value = modeloId;
+                    }
+                });
+        }
 
+        // Atualizar modelos quando a marca é alterada
+        document.getElementById('{{ form.marca.auto_id }}').addEventListener('change', function() {
+            if (this.value) {
+                atualizarModelos(this.value);
+            }
+        });
+
+        // Preview de imagens múltiplas
+        document.getElementById('{{ form.imagens_multiplas.auto_id }}').addEventListener('change', function(e) {
+            const previewDiv = document.getElementById('multiple-preview');
+            previewDiv.innerHTML = '';
+            
             if (this.files) {
-                Array.from(this.files).forEach(function(file) {
-                    var reader = new FileReader();
+                [...this.files].forEach(file => {
+                    const reader = new FileReader();
                     reader.onload = function(e) {
-                        var img = $('<img>')
-                            .attr('src', e.target.result)
-                            .addClass('img-thumbnail')
-                            .css('max-height', '100px');
-                        previewDiv.append(img);
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'img-thumbnail';
+                        img.style.maxHeight = '100px';
+                        previewDiv.appendChild(img);
                     }
                     reader.readAsDataURL(file);
                 });
             }
         });
 
-        // Preview para cada campo de upload individual
-        $('.foto-form input[type="file"]').change(function() {
-            var input = this;
-            var preview = $(this).closest('.row').find('img');
-            
-            if (!preview.length) {
-                preview = $('<img class="img-fluid rounded" style="max-height: 150px;">');
-                $(this).closest('.row').find('.col-md-3').append(preview);
-            }
-
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.attr('src', e.target.result);
+        // Preview de imagem única
+        document.querySelectorAll('input[type="file"]:not(#{{ form.imagens_multiplas.auto_id }})').forEach(input => {
+            input.addEventListener('change', function() {
+                const previewContainer = this.closest('.card-body').querySelector('img');
+                if (previewContainer && this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewContainer.src = e.target.result;
+                    }
+                    reader.readAsDataURL(this.files[0]);
                 }
-                reader.readAsDataURL(input.files[0]);
-            }
+            });
         });
 
         // Efeito ao marcar exclusão
-        $('input[name$="-DELETE"]').change(function() {
-            var card = $(this).closest('.card');
-            if ($(this).is(':checked')) {
-                card.addClass('opacity-50');
-            } else {
-                card.removeClass('opacity-50');
+        document.querySelectorAll('input[type="checkbox"][name$="-DELETE"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const card = this.closest('.card');
+                if (this.checked) {
+                    card.style.opacity = '0.5';
+                } else {
+                    card.style.opacity = '1';
+                }
+            });
+        });
+
+        // Salvar novo modelo via AJAX
+        document.getElementById('btnSalvarModelo').addEventListener('click', function() {
+            const nome = document.getElementById('modeloNome').value;
+            const marca = document.getElementById('modeloMarca').value;
+            const descricao = document.getElementById('modeloDescricao').value;
+
+            if (!nome || !marca) {
+                alert('Por favor, preencha os campos obrigatórios.');
+                return;
             }
+
+            const formData = new FormData();
+            formData.append('nome', nome);
+            formData.append('marca', marca);
+            formData.append('descricao', descricao);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+            fetch('{% url "modelo_create_ajax" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualizar o select de modelos e selecionar o novo modelo
+                    atualizarModelos(marca, data.modelo_id);
+                    
+                    // Fechar o modal e limpar o formulário
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('novoModeloModal'));
+                    modal.hide();
+                    document.getElementById('formNovoModelo').reset();
+
+                    // Mostrar mensagem de sucesso
+                    alert('Modelo criado com sucesso!');
+                } else {
+                    alert('Erro ao criar modelo: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erro ao criar modelo. Por favor, tente novamente.');
+            });
         });
     });
 </script>
