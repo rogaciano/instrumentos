@@ -1,188 +1,49 @@
-{% extends 'base.html' %}
+{% extends 'instrumentos/base.html' %}
+{% load static %}
 
 {% block title %}Modelos{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <!-- Barra lateral de filtros -->
-        <div class="col-md-3">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Filtros</h5>
-                </div>
-                <div class="card-body">
-                    <form method="get" id="filter-form">
-                        <!-- Campo de busca -->
-                        <div class="mb-3">
-                            <label for="q" class="form-label">Buscar</label>
-                            <input type="text" class="form-control" id="q" name="q" value="{{ search_query|default:'' }}"
-                                   placeholder="Nome do modelo...">
-                        </div>
-
-                        <!-- Filtro por Categoria -->
-                        <div class="mb-3">
-                            <label class="form-label">Categoria</label>
-                            <div class="list-group">
-                                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_marca %}marca={{ selected_marca }}&{% endif %}{% if selected_subcategoria %}subcategoria={{ selected_subcategoria }}{% endif %}"
-                                   class="list-group-item list-group-item-action {% if not selected_categoria %}active{% endif %}">
-                                    Todas
-                                </a>
-                                {% for categoria in categorias %}
-                                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}categoria={{ categoria.id }}{% if selected_marca %}&marca={{ selected_marca }}{% endif %}{% if selected_subcategoria %}&subcategoria={{ selected_subcategoria }}{% endif %}"
-                                   class="list-group-item list-group-item-action {% if selected_categoria == categoria.id|stringformat:'s' %}active{% endif %}">
-                                    {{ categoria.nome }}
-                                </a>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Filtro por Subcategoria -->
-                        <div class="mb-3">
-                            <label class="form-label">Subcategoria</label>
-                            <div class="list-group">
-                                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_marca %}marca={{ selected_marca }}&{% endif %}{% if selected_categoria %}categoria={{ selected_categoria }}{% endif %}"
-                                   class="list-group-item list-group-item-action {% if not selected_subcategoria %}active{% endif %}">
-                                    Todas
-                                </a>
-                                {% for subcategoria in subcategorias %}
-                                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}subcategoria={{ subcategoria.id }}{% if selected_marca %}&marca={{ selected_marca }}{% endif %}{% if selected_categoria %}&categoria={{ selected_categoria }}{% endif %}"
-                                   class="list-group-item list-group-item-action {% if selected_subcategoria == subcategoria.id|stringformat:'s' %}active{% endif %}">
-                                    {{ subcategoria.nome }}
-                                </a>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Filtro por Marca -->
-                        <div class="mb-3">
-                            <label class="form-label">Marca</label>
-                            <div class="list-group">
-                                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_categoria %}categoria={{ selected_categoria }}&{% endif %}{% if selected_subcategoria %}subcategoria={{ selected_subcategoria }}{% endif %}"
-                                   class="list-group-item list-group-item-action {% if not selected_marca %}active{% endif %}">
-                                    Todas
-                                </a>
-                                {% for marca in marcas %}
-                                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}marca={{ marca.id }}{% if selected_categoria %}&categoria={{ selected_categoria }}{% endif %}{% if selected_subcategoria %}&subcategoria={{ selected_subcategoria }}{% endif %}"
-                                   class="list-group-item list-group-item-action {% if selected_marca == marca.id|stringformat:'s' %}active{% endif %}">
-                                    {{ marca.nome }}
-                                </a>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Botão para limpar filtros -->
-                        <div class="d-grid">
-                            <a href="{% url 'modelo_list' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times"></i> Limpar Filtros
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Lista de modelos -->
-        <div class="col-md-9">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h4 class="mb-0">
-                            <i class="fas fa-cube"></i> Modelos
-                            {% if search_query or selected_marca or selected_categoria or selected_subcategoria %}
-                            <small class="text-muted">(Filtrados)</small>
-                            {% endif %}
-                        </h4>
-                    </div>
-                    <a href="{% url 'modelo_create' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Novo Modelo
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if modelos %}
-                    <div class="row row-cols-1 row-cols-md-3 g-4">
-                        {% for modelo in modelos %}
-                        <div class="col">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ modelo.nome }}</h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">{{ modelo.marca.nome }}</h6>
-                                    <p class="card-text text-muted small">
-                                        <i class="fas fa-tag"></i> {{ modelo.subcategoria.nome }}
-                                    </p>
-                                    <p class="card-text">{{ modelo.descricao|truncatechars:100 }}</p>
-                                    <div class="btn-group w-100">
-                                        <a href="{% url 'modelo_update' modelo.pk %}" class="btn btn-sm btn-warning">
-                                            <i class="fas fa-edit"></i> Editar
-                                        </a>
-                                        <a href="{% url 'modelo_delete' modelo.pk %}" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-trash"></i> Excluir
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Paginação -->
-                    {% if is_paginated %}
-                    <nav aria-label="Navegação de página" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_marca %}&marca={{ selected_marca }}{% endif %}{% if selected_categoria %}&categoria={{ selected_categoria }}{% endif %}{% if selected_subcategoria %}&subcategoria={{ selected_subcategoria }}{% endif %}">
-                                    <i class="fas fa-chevron-left"></i>
-                                </a>
-                            </li>
-                            {% endif %}
-
-                            {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ num }}</span>
-                            </li>
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_marca %}&marca={{ selected_marca }}{% endif %}{% if selected_categoria %}&categoria={{ selected_categoria }}{% endif %}{% if selected_subcategoria %}&subcategoria={{ selected_subcategoria }}{% endif %}">
-                                    {{ num }}
-                                </a>
-                            </li>
-                            {% endif %}
-                            {% endfor %}
-
-                            {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_marca %}&marca={{ selected_marca }}{% endif %}{% if selected_categoria %}&categoria={{ selected_categoria }}{% endif %}{% if selected_subcategoria %}&subcategoria={{ selected_subcategoria }}{% endif %}">
-                                    <i class="fas fa-chevron-right"></i>
-                                </a>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                    {% endif %}
-
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-cube fa-3x text-muted mb-3"></i>
-                        <h5>Nenhum modelo encontrado</h5>
-                        <p class="text-muted">Tente outros filtros ou adicione um novo modelo.</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Modelos</h1>
+        <a href="{% url 'modelo_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Novo Modelo
+        </a>
     </div>
-</div>
 
-{% block extra_js %}
-<script>
-    // Atualizar formulário quando campo de busca mudar
-    document.getElementById('q').addEventListener('input', function(e) {
-        if (e.target.value.length === 0 || e.target.value.length >= 3) {
-            document.getElementById('filter-form').submit();
-        }
-    });
-</script>
-{% endblock %}
+    {% if modelo_list %}
+    <div class="row">
+        {% for modelo in modelo_list %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ modelo.nome }}</h5>
+                    <p class="card-text">
+                        <strong>Marca:</strong> {{ modelo.marca.nome }}
+                    </p>
+                    <p class="card-text">
+                        <strong>Instrumentos:</strong> {{ modelo.instrumento_set.count }}
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <div class="btn-group w-100">
+                        <a href="{% url 'modelo_update' modelo.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="{% url 'modelo_delete' modelo.pk %}" class="btn btn-outline-danger">
+                            <i class="fas fa-trash"></i> Excluir
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Nenhum modelo cadastrado.
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

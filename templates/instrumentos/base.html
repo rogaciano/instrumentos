@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gerenciamento de Instrumentos{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Estilo para cards de instrumentos */
+        .instrument-card {
+            height: 100%;
+            transition: transform 0.2s;
+        }
+        
+        .instrument-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .instrument-card .card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        /* Estilo para o preço */
+        .price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+        }
+        
+        /* Thumbnail grid */
+        .thumbnail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 1rem;
+        }
+        
+        .thumbnail {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+        }
+
+        /* Menu deslizante (mobile) */
+        .offcanvas {
+            width: 280px !important;
+        }
+
+        .nav-link {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            transition: background-color 0.2s;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(0,0,0,0.05);
+            color: #007bff;
+        }
+
+        .nav-link i {
+            width: 25px;
+            text-align: center;
+            margin-right: 8px;
+        }
+
+        /* Menu lateral fixo (desktop) */
+        #sidebarMenu {
+            position: fixed;
+            top: 56px; /* Altura da navbar */
+            left: 0;
+            bottom: 0;
+            width: 250px;
+            background-color: #f8f9fa;
+            padding-top: 1rem;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        /* Ajuste do conteúdo principal */
+        @media (min-width: 992px) {
+            main.container {
+                margin-left: 250px;
+                width: calc(100% - 250px);
+                transition: margin-left 0.3s ease-in-out;
+            }
+
+            /* Esconde botão do menu em desktop */
+            .navbar-toggler {
+                display: none !important;
+            }
+
+            /* Esconde menu deslizante em desktop */
+            .offcanvas {
+                display: none !important;
+            }
+        }
+
+        /* Ajustes para mobile */
+        @media (max-width: 991.98px) {
+            #sidebarMenu {
+                display: none !important;
+            }
+
+            main.container {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .navbar-toggler {
+                display: block !important;
+            }
+        }
+
+        /* Ajuste geral do layout */
+        body {
+            padding-top: 56px; /* Altura da navbar */
+        }
+
+        /* Navbar fixa */
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Botão do menu mais visível */
+        .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+        }
+
+        .navbar-toggler-icon {
+            width: 1.5em;
+            height: 1.5em;
+        }
+
+        /* Conteúdo principal */
+        main {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar Fixa -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#sideMenu" aria-controls="sideMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-guitar"></i> Instrumentos Musicais
+            </a>
+        </div>
+    </nav>
+
+    <!-- Menu Lateral Fixo (Desktop) -->
+    <nav id="sidebarMenu">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'home' %}">
+                    <i class="fas fa-home"></i> Home
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'instrumento_list' %}">
+                    <i class="fas fa-guitar"></i> Instrumentos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'categoria_list' %}">
+                    <i class="fas fa-tags"></i> Categorias
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'subcategoria_list' %}">
+                    <i class="fas fa-tag"></i> Subcategorias
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'marca_list' %}">
+                    <i class="fas fa-building"></i> Marcas
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'modelo_list' %}">
+                    <i class="fas fa-cube"></i> Modelos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'ai_populate' %}">
+                    <i class="fas fa-robot"></i> Gerar Dados
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Menu Lateral Deslizante (Mobile) -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sideMenu" aria-labelledby="sideMenuLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="sideMenuLabel">Menu</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'instrumento_list' %}">
+                        <i class="fas fa-guitar"></i> Instrumentos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'categoria_list' %}">
+                        <i class="fas fa-tags"></i> Categorias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'subcategoria_list' %}">
+                        <i class="fas fa-tag"></i> Subcategorias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'marca_list' %}">
+                        <i class="fas fa-building"></i> Marcas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'modelo_list' %}">
+                        <i class="fas fa-cube"></i> Modelos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'ai_populate' %}">
+                        <i class="fas fa-robot"></i> Gerar Dados
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <main class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Fecha o menu quando um item é clicado (apenas no mobile)
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.offcanvas .nav-link');
+            const offcanvas = document.getElementById('sideMenu');
+            const bsOffcanvas = new bootstrap.Offcanvas(offcanvas);
+
+            navLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 992) { // Apenas em mobile
+                        bsOffcanvas.hide();
+                    }
+                });
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

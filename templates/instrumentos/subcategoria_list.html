@@ -1,134 +1,49 @@
-{% extends 'base.html' %}
+{% extends 'instrumentos/base.html' %}
+{% load static %}
 
 {% block title %}Subcategorias{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="mb-0"><i class="fas fa-sitemap"></i> Subcategorias</h4>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Subcategorias</h1>
         <a href="{% url 'subcategoria_create' %}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Nova Subcategoria
         </a>
     </div>
-    <div class="card-body">
-        <!-- Campo de Pesquisa -->
-        <form method="get" class="mb-4">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <div class="input-group">
-                        <input type="text" name="q" class="form-control" 
-                               placeholder="Pesquisar por nome ou descrição..."
-                               value="{{ request.GET.q|default:'' }}">
-                        <button class="btn btn-outline-secondary" type="submit">
-                            <i class="fas fa-search"></i> Pesquisar
-                        </button>
-                        {% if request.GET.q or request.GET.categoria %}
-                            <a href="{% url 'subcategoria_list' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times"></i> Limpar
-                            </a>
-                        {% endif %}
+
+    {% if subcategoria_list %}
+    <div class="row">
+        {% for subcategoria in subcategoria_list %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ subcategoria.nome }}</h5>
+                    <p class="card-text">
+                        <strong>Categoria:</strong> {{ subcategoria.categoria.nome }}
+                    </p>
+                    <p class="card-text">
+                        <strong>Instrumentos:</strong> {{ subcategoria.instrumento_set.count }}
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <div class="btn-group w-100">
+                        <a href="{% url 'subcategoria_update' subcategoria.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="{% url 'subcategoria_delete' subcategoria.pk %}" class="btn btn-outline-danger">
+                            <i class="fas fa-trash"></i> Excluir
+                        </a>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <select name="categoria" class="form-select" onchange="this.form.submit()">
-                        <option value="">Todas as Categorias</option>
-                        {% for categoria in categorias %}
-                            <option value="{{ categoria.id }}" {% if request.GET.categoria|add:"0" == categoria.id %}selected{% endif %}>
-                                {{ categoria.nome }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
             </div>
-        </form>
-
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Categoria</th>
-                        <th>Descrição</th>
-                        <th>Modelos</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for subcategoria in subcategorias %}
-                    <tr>
-                        <td>{{ subcategoria.nome }}</td>
-                        <td>{{ subcategoria.categoria.nome }}</td>
-                        <td>{{ subcategoria.descricao|truncatechars:100 }}</td>
-                        <td>{{ subcategoria.modelos.count }}</td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <a href="{% url 'subcategoria_detail' subcategoria.pk %}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{% url 'subcategoria_update' subcategoria.pk %}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{% url 'subcategoria_delete' subcategoria.pk %}" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center">
-                            {% if request.GET.q %}
-                                Nenhuma subcategoria encontrada para "{{ request.GET.q }}".
-                            {% elif request.GET.categoria %}
-                                Nenhuma subcategoria encontrada para esta categoria.
-                            {% else %}
-                                Nenhuma subcategoria cadastrada.
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
-
-        <!-- Paginação -->
-        {% if is_paginated %}
-        <nav aria-label="Navegação de páginas" class="mt-4">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}">
-                            <i class="fas fa-angle-double-left"></i>
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}">
-                            <i class="fas fa-angle-left"></i>
-                        </a>
-                    </li>
-                {% endif %}
-
-                <li class="page-item active">
-                    <span class="page-link">
-                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-                    </span>
-                </li>
-
-                {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}">
-                            <i class="fas fa-angle-right"></i>
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}">
-                            <i class="fas fa-angle-double-right"></i>
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
+        {% endfor %}
     </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Nenhuma subcategoria cadastrada.
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

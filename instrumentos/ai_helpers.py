@@ -1,29 +1,139 @@
-from openai import OpenAI
-from django.conf import settings
-import logging
 import os
 import json
+import logging
+import re
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-import re
 from PIL import Image
 from io import BytesIO
+from openai import OpenAI
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-client = None
-
 def setup_openai(api_key=None):
     """Configura a API key da OpenAI"""
-    global client
     key_to_use = api_key or os.getenv('OPENAI_API_KEY') or settings.OPENAI_API_KEY
     logger.info(f"Using API key: {key_to_use[:6]}...{key_to_use[-4:] if key_to_use else 'None'}")
+    return OpenAI(api_key=key_to_use)
+
+client = None
+
+def _clean_json_response(content):
+    """
+    Limpa a resposta da API para garantir JSON válido
+    """
+    # Encontrar o primeiro [ e último ]
+    start = content.find('[')
+    end = content.rfind(']')
     
-    if not key_to_use:
-        raise ValueError("OpenAI API key not found in settings or environment")
+    if start == -1 or end == -1:
+        raise ValueError("Resposta não contém JSON válido")
+    
+    content = content[start:end+1]
+    
+    # Substituir aspas curvas por retas
+    content = content.replace('"', '"').replace('"', '"')
+    
+    # Remover caracteres de escape inválidos
+    content = content.replace('\\"', '"')
+    
+    # Remover quebras de linha e espaços extras entre strings
+    content = re.sub(r',\s+', ', ', content)
+    content = re.sub(r'\[\s+', '[', content)
+    content = re.sub(r'\s+\]', ']', content)
+    
+    return content
+
+def _generate_data_chunk(prompt, quantidade=None, max_retries=3):
+    """
+    Função interna para gerar um chunk de dados
+    """
+    for attempt in range(max_retries):
+        try:
+            # Adicionar a quantidade explicitamente no prompt se fornecida
+            full_prompt = prompt
+            if quantidade:
+                full_prompt = f"IMPORTANTE: Gere EXATAMENTE {quantidade} itens.\n\n" + prompt
+
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": "Você é um especialista em instrumentos musicais. Gere dados precisos e variados, na quantidade exata solicitada. SEMPRE retorne apenas JSON válido, sem texto adicional."
+                    },
+                    {"role": "user", "content": full_prompt}
+                ],
+                temperature=0.9,
+                max_tokens=3000,
+                presence_penalty=0.6,
+                frequency_penalty=0.8
+            )
+            
+            content = response.choices[0].message.content.strip()
+            
+            # Limpar a resposta para garantir JSON válido
+            content = _clean_json_response(content)
+            
+            # Validar o JSON e a quantidade
+            data = json.loads(content)
+            if not isinstance(data, list):
+                raise ValueError("Resposta não é uma lista JSON válida")
+                
+            if quantidade and len(data) < quantidade:
+                logger.warning(f"Tentativa {attempt + 1}: API retornou apenas {len(data)} itens de {quantidade}")
+                if attempt < max_retries - 1:
+                    continue
+            
+            return content
+
+        except Exception as e:
+            logger.error(f"Erro na tentativa {attempt + 1}: {str(e)}")
+            if attempt == max_retries - 1:  # Se for a última tentativa
+                raise
+    
+    return "[]"
+
+def generate_data(prompt, quantidade=None, max_retries=3, chunk_size=10):
+    """
+    Gera dados usando a OpenAI API com suporte a múltiplas tentativas
+    e validação de quantidade. Para grandes quantidades, divide em chunks.
+    """
+    global client
+    if not client:
+        client = setup_openai()
+
+    # Se a quantidade for grande, dividir em chunks menores
+    if quantidade and quantidade > chunk_size:
+        results = []
+        chunks = (quantidade + chunk_size - 1) // chunk_size  # Arredonda para cima
         
-    client = OpenAI(api_key=key_to_use)
+        for i in range(chunks):
+            items_to_generate = min(chunk_size, quantidade - (i * chunk_size))
+            chunk_prompt = f"IMPORTANTE: Gere EXATAMENTE {items_to_generate} itens DIFERENTES dos já gerados anteriormente.\n\n" + prompt
+            
+            try:
+                chunk_data = _generate_data_chunk(chunk_prompt, items_to_generate, max_retries)
+                if chunk_data:
+                    chunk_json = json.loads(chunk_data)
+                    results.extend(chunk_json)
+            except Exception as e:
+                logger.error(f"Erro ao gerar chunk {i+1}/{chunks}: {str(e)}")
+                continue
+        
+        # Garantir que não temos duplicatas
+        unique_results = []
+        seen_names = set()
+        for item in results:
+            if 'nome' in item and item['nome'] not in seen_names:
+                seen_names.add(item['nome'])
+                unique_results.append(item)
+        
+        return json.dumps(unique_results[:quantidade])
+    else:
+        return _generate_data_chunk(prompt, quantidade, max_retries)
 
 def generate_categorias(quantidade):
     """Gera categorias de instrumentos musicais usando GPT"""
@@ -40,13 +150,7 @@ def generate_categorias(quantidade):
     ]
     """
     
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
-    )
-    
-    return response.choices[0].message.content
+    return generate_data(prompt, quantidade)
 
 def generate_subcategorias(quantidade, categoria):
     """Gera subcategorias para uma categoria específica"""
@@ -63,13 +167,7 @@ def generate_subcategorias(quantidade, categoria):
     ]
     """
     
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
-    )
-    
-    return response.choices[0].message.content
+    return generate_data(prompt, quantidade)
 
 def generate_marcas(quantidade):
     """Gera marcas de instrumentos musicais"""
@@ -98,13 +196,7 @@ def generate_marcas(quantidade):
     4. Prefira logotipos de alta resolução
     """
     
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
-    )
-    
-    return response.choices[0].message.content
+    return generate_data(prompt, quantidade)
 
 def generate_modelos(quantidade, marca):
     """Gera modelos para uma marca específica"""
@@ -122,13 +214,7 @@ def generate_modelos(quantidade, marca):
     ]
     """
     
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
-    )
-    
-    return response.choices[0].message.content
+    return generate_data(prompt, quantidade)
 
 def generate_instrumentos(quantidade, modelo):
     """Gera instrumentos para um modelo específico"""
@@ -161,13 +247,7 @@ def generate_instrumentos(quantidade, modelo):
     ]
     """
     
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
-    )
-    
-    return response.choices[0].message.content
+    return generate_data(prompt, quantidade)
 
 def buscar_logo_no_site(site_url):
     """

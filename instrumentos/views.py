@@ -3,32 +3,27 @@ from dotenv import load_dotenv
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from django.contrib import messages
 from django.http import JsonResponse
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q, Sum, F, ExpressionWrapper, DecimalField
 from django.db.models.functions import Coalesce
-from django.contrib.auth.mixins import LoginRequiredMixin
-from decimal import Decimal
-from .models import Instrumento, Categoria, Modelo, FotoInstrumento, Marca, SubCategoria
-from .forms import CategoriaForm, ModeloForm, InstrumentoCreateForm, MarcaForm, SubCategoriaForm, FotoInstrumentoFormSet
-import json
-import openai
-from .ai_helpers import (
-    setup_openai,
-    generate_categorias,
-    generate_subcategorias,
-    generate_marcas,
-    generate_modelos,
-    generate_instrumentos,
-    generate_logo_url
-)
-import logging
 from django.utils import timezone
+from decimal import Decimal
+from .models import Categoria, SubCategoria, Marca, Modelo, Instrumento, FotoInstrumento
+from .forms import (
+    CategoriaForm, SubCategoriaForm, MarcaForm, ModeloForm, 
+    InstrumentoCreateForm, FotoInstrumentoFormSet
+)
+from .ai_helpers import setup_openai, generate_data
+import json
+import random
+import logging
+import re
 import requests
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from urllib.parse import urlparse
-import random
 
 logger = logging.getLogger(__name__)
 
@@ -579,13 +574,14 @@ def modelos_por_marca(request, marca_id):
     modelos = Modelo.objects.filter(marca_id=marca_id).values('id', 'nome')
     return JsonResponse(list(modelos), safe=False)
 
-def generate_data(prompt):
+def generate_data(prompt, quantidade=10):
     """
     Gera dados usando a OpenAI API
     """
     try:
         # Configurar cliente OpenAI
-        client = openai.OpenAI()
+        from openai import OpenAI
+        client = OpenAI()
         
         # Fazer a chamada para a API
         response = client.chat.completions.create(
@@ -634,26 +630,27 @@ def ai_populate_view(request):
             if 'categorias' in tables:
                 prompt = """
                 Gere dados para categorias de instrumentos musicais no formato JSON.
+                Use APENAS categorias reais e comuns em lojas de música.
                 Cada categoria deve ter:
-                - nome: Nome da categoria
-                - descricao: Breve descrição da categoria
+                - nome: Nome único da categoria (ex: Cordas, Sopro, Percussão)
+                - descricao: Descrição técnica e precisa da categoria
                 
                 Exemplo:
                 [
                     {
                         "nome": "Cordas",
-                        "descricao": "Instrumentos que produzem som através da vibração de cordas"
+                        "descricao": "Instrumentos que produzem som através da vibração de cordas, incluindo cordas dedilhadas, friccionadas ou percutidas"
                     }
                 ]
                 """
                 
-                categorias_json = generate_data(prompt)
+                categorias_json = generate_data(prompt, quantidade=quantidade)
                 try:
                     categorias_data = json.loads(categorias_json)
                     
                     created = 0
                     updated = 0
-                    for cat_data in categorias_data[:quantidade]:
+                    for cat_data in categorias_data:
                         cat, is_new = Categoria.objects.get_or_create(
                             nome=cat_data['nome']
                         )
@@ -665,7 +662,11 @@ def ai_populate_view(request):
                         else:
                             updated += 1
                     
-                    results['categorias'] = {'created': created, 'updated': updated}
+                    results['categorias'] = {
+                        'created': created, 
+                        'updated': updated,
+                        'total_received': len(categorias_data)
+                    }
                 except json.JSONDecodeError as e:
                     results['categorias'] = {'error': str(e)}
             
@@ -676,24 +677,26 @@ def ai_populate_view(request):
                 for categoria in Categoria.objects.all():
                     prompt = f"""
                     Gere dados para subcategorias da categoria '{categoria.nome}' no formato JSON.
+                    Use APENAS subcategorias que realmente pertencem a esta categoria principal.
                     Cada subcategoria deve ter:
-                    - nome: Nome da subcategoria
-                    - descricao: Breve descrição da subcategoria
+                    - nome: Nome específico da subcategoria
+                    - descricao: Descrição técnica e detalhada
                     
-                    Exemplo:
+                    Para a categoria '{categoria.nome}', gere subcategorias específicas e coerentes.
+                    Por exemplo, para "Cordas":
                     [
                         {{
                             "nome": "Violões",
-                            "descricao": "Violões acústicos e clássicos"
+                            "descricao": "Instrumentos de cordas dedilhadas com caixa acústica, incluindo violões clássicos e folk"
                         }}
                     ]
                     """
                     
-                    subcategorias_json = generate_data(prompt)
+                    subcategorias_json = generate_data(prompt, quantidade=quantidade)
                     try:
                         subcategorias_data = json.loads(subcategorias_json)
                         
-                        for subcat_data in subcategorias_data[:quantidade]:
+                        for subcat_data in subcategorias_data:
                             subcat, is_new = SubCategoria.objects.get_or_create(
                                 nome=subcat_data['nome'],
                                 categoria=categoria
@@ -710,36 +713,40 @@ def ai_populate_view(request):
                         break
                 
                 if 'subcategorias' not in results:
-                    results['subcategorias'] = {'created': created, 'updated': updated}
+                    results['subcategorias'] = {
+                        'created': created, 
+                        'updated': updated
+                    }
             
             # Gerar Marcas
             if 'marcas' in tables:
                 prompt = """
                 Gere dados para marcas de instrumentos musicais no formato JSON.
-                Cada marca deve ter:
-                - nome: Nome da marca
-                - site: Site oficial da marca (URL completa)
-                - descricao: Breve descrição da marca e sua história
-                - pais_origem: País de origem da marca
+                Inclua tanto marcas mundialmente famosas quanto marcas de médio porte.
+                NÃO REPITA marcas já mencionadas.
                 
-                Exemplo:
-                [
-                    {
-                        "nome": "Fender",
-                        "site": "https://www.fender.com",
-                        "descricao": "Fundada em 1946, a Fender é uma das mais icônicas fabricantes de guitarras e baixos.",
-                        "pais_origem": "Estados Unidos"
-                    }
-                ]
+                Cada marca deve ter:
+                - nome: Nome oficial da marca
+                - site: Site oficial da marca (URL completa e válida)
+                - descricao: História detalhada da marca, incluindo ano de fundação e principais produtos
+                - pais_origem: País onde a marca foi fundada
+                
+                Exemplos de marcas possíveis: Fender, Gibson, Yamaha, Ibanez, Roland, Korg, Pearl, Zildjian, Selmer, Buffet Crampon, etc.
                 """
                 
-                marcas_json = generate_data(prompt)
+                marcas_json = generate_data(prompt, quantidade=quantidade)
                 try:
                     marcas_data = json.loads(marcas_json)
                     
                     created = 0
                     updated = 0
-                    for marca_data in marcas_data[:quantidade]:
+                    marcas_processadas = set()
+                    
+                    for marca_data in marcas_data:
+                        # Pular se já processamos esta marca
+                        if marca_data['nome'] in marcas_processadas:
+                            continue
+                            
                         marca, is_new = Marca.objects.get_or_create(
                             nome=marca_data['nome']
                         )
@@ -748,18 +755,24 @@ def ai_populate_view(request):
                         marca.pais_origem = marca_data['pais_origem']
                         marca.save()
                         
+                        marcas_processadas.add(marca_data['nome'])
+                        
                         if is_new:
                             created += 1
                         else:
                             updated += 1
                     
-                    results['marcas'] = {'created': created, 'updated': updated}
+                    results['marcas'] = {
+                        'created': created, 
+                        'updated': updated,
+                        'total_received': len(marcas_data),
+                        'unique_processed': len(marcas_processadas)
+                    }
                 except json.JSONDecodeError as e:
                     results['marcas'] = {'error': str(e)}
             
             # Gerar Modelos
             if 'modelos' in tables:
-                # Verificar se existem subcategorias
                 if not SubCategoria.objects.exists():
                     messages.error(request, 'Não existem subcategorias. Por favor, gere subcategorias primeiro.')
                     results['modelos'] = {'error': 'Não existem subcategorias'}
@@ -767,58 +780,60 @@ def ai_populate_view(request):
                     created = 0
                     updated = 0
                     
-                    # Pegar todas as subcategorias disponíveis
-                    subcategorias = list(SubCategoria.objects.all())
-                    
                     for marca in Marca.objects.all():
-                        prompt = f"""
-                        Gere dados para modelos de instrumentos da marca '{marca.nome}' no formato JSON.
-                        Cada modelo deve ter:
-                        - nome: Nome do modelo
-                        - descricao: Breve descrição do modelo
-                        
-                        Exemplo:
-                        [
-                            {{
-                                "nome": "Stratocaster",
-                                "descricao": "A lendária guitarra que definiu o som do rock"
-                            }}
-                        ]
-                        """
-                        
-                        modelos_json = generate_data(prompt)
-                        try:
-                            modelos_data = json.loads(modelos_json)
+                        # Para cada marca, vamos gerar modelos apenas para subcategorias apropriadas
+                        for subcategoria in SubCategoria.objects.all():
+                            prompt = f"""
+                            Gere dados para modelos da marca '{marca.nome}' na subcategoria '{subcategoria.nome}' no formato JSON.
+                            IMPORTANTE: Gere APENAS se a marca realmente produz instrumentos desta subcategoria.
+                            Se a marca não produz instrumentos desta subcategoria, retorne array vazio [].
                             
-                            for modelo_data in modelos_data[:quantidade]:
-                                # Escolher uma subcategoria aleatória
-                                subcategoria = random.choice(subcategorias)
+                            Cada modelo deve ter:
+                            - nome: Nome oficial e completo do modelo
+                            - descricao: Descrição detalhada incluindo características técnicas
+                            
+                            Exemplo para Fender na subcategoria Guitarras Elétricas:
+                            [
+                                {{
+                                    "nome": "Stratocaster American Professional II",
+                                    "descricao": "Guitarra elétrica de corpo sólido com 3 captadores single-coil V-Mod II, ponte tremolo, braço em maple e corpo em alder."
+                                }}
+                            ]
+                            """
+                            
+                            modelos_json = generate_data(prompt, quantidade=quantidade)
+                            try:
+                                modelos_data = json.loads(modelos_json)
                                 
-                                modelo, is_new = Modelo.objects.get_or_create(
-                                    nome=modelo_data['nome'],
-                                    marca=marca,
-                                    defaults={
-                                        'descricao': modelo_data['descricao'],
-                                        'subcategoria': subcategoria
-                                    }
-                                )
-                                
-                                if not is_new:
-                                    # Atualizar dados existentes
-                                    modelo.descricao = modelo_data['descricao']
-                                    modelo.subcategoria = subcategoria
-                                    modelo.save()
-                                
-                                if is_new:
-                                    created += 1
-                                else:
-                                    updated += 1
-                        except json.JSONDecodeError as e:
-                            results['modelos'] = {'error': str(e)}
-                            break
+                                if modelos_data:  # Se a lista não estiver vazia
+                                    for modelo_data in modelos_data:
+                                        modelo, is_new = Modelo.objects.get_or_create(
+                                            nome=modelo_data['nome'],
+                                            marca=marca,
+                                            defaults={
+                                                'descricao': modelo_data['descricao'],
+                                                'subcategoria': subcategoria
+                                            }
+                                        )
+                                        
+                                        if not is_new:
+                                            modelo.descricao = modelo_data['descricao']
+                                            modelo.subcategoria = subcategoria
+                                            modelo.save()
+                                        
+                                        if is_new:
+                                            created += 1
+                                        else:
+                                            updated += 1
+                            except json.JSONDecodeError as e:
+                                results['modelos'] = {'error': str(e)}
+                                break
                     
                     if 'modelos' not in results:
-                        results['modelos'] = {'created': created, 'updated': updated}
+                        results['modelos'] = {
+                            'created': created, 
+                            'updated': updated
+                        }
             
             # Gerar Instrumentos
             if 'instrumentos' in tables:
@@ -865,7 +880,7 @@ def ai_populate_view(request):
                         6. status: disponivel, vendido, reservado ou manutencao
                         """
                         
-                        instrumentos_json = generate_data(prompt)
+                        instrumentos_json = generate_data(prompt, quantidade=1)
                         try:
                             # Limpar a resposta
                             json_str = instrumentos_json.strip()
