@@ -5,10 +5,12 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum, F, ExpressionWrapper, DecimalField
+from django.db.models.functions import Coalesce
 from django.contrib.auth.mixins import LoginRequiredMixin
+from decimal import Decimal
 from .models import Instrumento, Categoria, Modelo, FotoInstrumento, Marca, SubCategoria
-from .forms import CategoriaForm, ModeloForm, InstrumentoCreateForm, MarcaForm, SubCategoriaForm
+from .forms import CategoriaForm, ModeloForm, InstrumentoCreateForm, MarcaForm, SubCategoriaForm, FotoInstrumentoFormSet
 import json
 import openai
 from .ai_helpers import (
@@ -21,7 +23,6 @@ from .ai_helpers import (
     generate_logo_url
 )
 import logging
-from decimal import Decimal
 from django.utils import timezone
 import requests
 from django.core.files import File
@@ -74,15 +75,71 @@ class HomeView(TemplateView):
             total_instrumentos=Count('modelos__instrumento', distinct=True)
         ).filter(total_instrumentos__gt=0).order_by('-total_instrumentos')
 
+        # Totais de valores
+        total_aquisicao = Instrumento.objects.aggregate(
+            total=Coalesce(
+                Sum(
+                    ExpressionWrapper(
+                        F('preco'),
+                        output_field=DecimalField(max_digits=10, decimal_places=2)
+                    )
+                ),
+                Decimal('0')
+            )
+        )['total']
+        
+        total_mercado = Instrumento.objects.aggregate(
+            total=Coalesce(
+                Sum(
+                    ExpressionWrapper(
+                        F('valor_mercado'),
+                        output_field=DecimalField(max_digits=10, decimal_places=2)
+                    )
+                ),
+                Decimal('0')
+            )
+        )['total']
+        
+        diferenca_total = total_mercado - total_aquisicao
+        
+        if total_aquisicao > 0:
+            percentual_valorizacao = (diferenca_total / total_aquisicao) * Decimal('100')
+        else:
+            percentual_valorizacao = Decimal('0')
+
+        context.update({
+            'total_aquisicao': total_aquisicao,
+            'total_mercado': total_mercado,
+            'diferenca_total': diferenca_total,
+            'percentual_valorizacao': percentual_valorizacao,
+        })
         return context
 
 def index(request):
     """View para a página inicial"""
+    # Calcular valores financeiros
+    instrumentos = Instrumento.objects.all()
+    preco = instrumentos.aggregate(
+        total=Coalesce(Sum('preco'), Decimal('0'))
+    )['total']
+    
+    valor_mercado = instrumentos.aggregate(
+        total=Coalesce(Sum('valor_mercado'), Decimal('0'))
+    )['total']
+    
+    diferenca = valor_mercado - preco
+    valorizacao = (diferenca / preco * 100) if preco > 0 else 0
+
     return render(request, 'instrumentos/index.html', {
-        'total_instrumentos': Instrumento.objects.count(),
+        'total_instrumentos': instrumentos.count(),
         'total_marcas': Marca.objects.count(),
-        'total_modelos': Modelo.objects.count(),
-        'instrumentos_recentes': Instrumento.objects.order_by('-data_cadastro')[:5]
+        'total_categorias': Categoria.objects.count(),
+        'total_subcategorias': SubCategoria.objects.count(),
+        'preco': preco,
+        'valor_mercado': valor_mercado,
+        'diferenca': diferenca,
+        'valorizacao': valorizacao,
+        'instrumentos_recentes': instrumentos.order_by('-data_cadastro')[:5]
     })
 
 class CategoriaListView(ListView):
@@ -380,73 +437,97 @@ class ModeloDetailView(DetailView):
         ).order_by('numero_serie')
         return context
 
-class InstrumentoListView(ListView):
-    model = Instrumento
-    template_name = 'instrumentos/instrumento_list.html'
-    context_object_name = 'instrumentos_list'
-    paginate_by = 10
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        q = self.request.GET.get('q')
-        if q:
-            return queryset.filter(
-                Q(codigo__icontains=q) |
-                Q(modelo__nome__icontains=q) |
-                Q(modelo__marca__nome__icontains=q) |
-                Q(subcategoria__nome__icontains=q)
-            )
-        return queryset.order_by('-data_cadastro')
-
 class InstrumentoDetailView(DetailView):
     model = Instrumento
     template_name = 'instrumentos/instrumento_detail.html'
     context_object_name = 'instrumento'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        instrumento = self.get_object()
+        context['modelo_info'] = {
+            'marca': instrumento.modelo.marca.nome,
+            'subcategoria': instrumento.modelo.subcategoria.nome,
+            'categoria': instrumento.modelo.subcategoria.categoria.nome
+        }
+        return context
+
+class InstrumentoListView(ListView):
+    model = Instrumento
+    template_name = 'instrumentos/instrumento_list.html'
+    context_object_name = 'instrumentos'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.select_related(
+            'modelo__marca',
+            'modelo__subcategoria__categoria'
+        )
 
 class InstrumentoCreateView(CreateView):
     model = Instrumento
     form_class = InstrumentoCreateForm
     template_name = 'instrumentos/instrumento_form.html'
 
-    def form_valid(self, form):
-        # Primeiro salva o instrumento
-        response = super().form_valid(form)
-        
-        # Processa as fotos
-        fotos = self.request.FILES.getlist('fotos')
-        for foto in fotos:
-            # Valida tamanho
-            if foto.size > 5 * 1024 * 1024:  # 5MB
-                form.add_error('fotos', f'A foto {foto.name} é muito grande. O tamanho máximo é 5MB.')
-                return self.form_invalid(form)
-            
-            # Valida tipo
-            import imghdr
-            if not imghdr.what(foto):
-                form.add_error('fotos', f'O arquivo {foto.name} não é uma imagem válida.')
-                return self.form_invalid(form)
-            
-            # Salva a foto
-            FotoInstrumento.objects.create(
-                instrumento=self.object,
-                imagem=foto
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['fotos_formset'] = FotoInstrumentoFormSet(
+                self.request.POST, 
+                self.request.FILES
             )
-        
-        messages.success(self.request, 'Instrumento criado com sucesso!')
-        return response
+        else:
+            context['fotos_formset'] = FotoInstrumentoFormSet()
+        return context
 
-    def get_success_url(self):
-        return reverse_lazy('instrumento_detail', kwargs={'pk': self.object.pk})
+    def form_valid(self, form):
+        context = self.get_context_data()
+        fotos_formset = context['fotos_formset']
+        
+        if form.is_valid() and fotos_formset.is_valid():
+            self.object = form.save()
+            
+            # Salva o formset
+            fotos_formset.instance = self.object
+            fotos_formset.save()
+            
+            messages.success(self.request, 'Instrumento criado com sucesso!')
+            return redirect('instrumento_detail', pk=self.object.pk)
+        else:
+            return self.form_invalid(form)
 
 class InstrumentoUpdateView(UpdateView):
     model = Instrumento
     form_class = InstrumentoCreateForm
     template_name = 'instrumentos/instrumento_form.html'
-    success_url = reverse_lazy('instrumento_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['fotos_formset'] = FotoInstrumentoFormSet(
+                self.request.POST, 
+                self.request.FILES,
+                instance=self.object
+            )
+        else:
+            context['fotos_formset'] = FotoInstrumentoFormSet(instance=self.object)
+        return context
 
     def form_valid(self, form):
-        messages.success(self.request, 'Instrumento atualizado com sucesso!')
-        return super().form_valid(form)
+        context = self.get_context_data()
+        fotos_formset = context['fotos_formset']
+        
+        if form.is_valid() and fotos_formset.is_valid():
+            self.object = form.save()
+            
+            # Salva o formset
+            fotos_formset.instance = self.object
+            fotos_formset.save()
+            
+            messages.success(self.request, 'Instrumento atualizado com sucesso!')
+            return redirect('instrumento_detail', pk=self.object.pk)
+        else:
+            return self.form_invalid(form)
 
 class InstrumentoDeleteView(DeleteView):
     model = Instrumento
@@ -456,6 +537,23 @@ class InstrumentoDeleteView(DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Instrumento excluído com sucesso!')
         return super().delete(request, *args, **kwargs)
+
+def foto_delete(request, instrumento_pk, pk):
+    foto = get_object_or_404(FotoInstrumento, pk=pk)
+    if request.method == 'POST':
+        foto.delete()
+        messages.success(request, 'Foto excluída com sucesso!')
+    return redirect('instrumento_detail', pk=instrumento_pk)
+
+def foto_update_descricao(request, instrumento_pk, pk):
+    foto = get_object_or_404(FotoInstrumento, pk=pk)
+    if request.method == 'POST':
+        descricao = request.POST.get('descricao', '')
+        foto.descricao = descricao
+        foto.save()
+        messages.success(request, 'Descrição atualizada com sucesso!')
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
 
 class FotoCreateView(CreateView):
     model = FotoInstrumento
@@ -475,17 +573,6 @@ class FotoCreateView(CreateView):
 
     def get_success_url(self):
         return reverse_lazy('instrumento_detail', kwargs={'pk': self.kwargs['instrumento_pk']})
-
-class FotoDeleteView(DeleteView):
-    model = FotoInstrumento
-    template_name = 'instrumentos/foto_confirm_delete.html'
-
-    def get_success_url(self):
-        return reverse_lazy('instrumento_detail', kwargs={'pk': self.kwargs['instrumento_pk']})
-
-    def delete(self, request, *args, **kwargs):
-        messages.success(request, 'Foto excluída com sucesso!')
-        return super().delete(request, *args, **kwargs)
 
 def modelos_por_marca(request, marca_id):
     """API para retornar modelos de uma marca específica"""

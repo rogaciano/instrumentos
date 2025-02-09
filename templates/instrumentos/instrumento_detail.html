@@ -1,150 +1,259 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load instrumento_tags %}
 
-{% block title %}{{ instrumento.modelo.nome }}{% endblock %}
+{% block title %}{{ instrumento.codigo }} - Detalhes{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">
-            <i class="fas fa-guitar"></i> {{ instrumento.modelo.nome }}
-            <small class="text-muted">{{ instrumento.codigo }}</small>
-        </h4>
-        <div>
-            <a href="{% url 'instrumento_update' instrumento.pk %}" class="btn btn-info">
-                <i class="fas fa-edit"></i> Editar
-            </a>
-            <a href="{% url 'instrumento_list' %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Voltar
-            </a>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <h5 class="mb-3">Informações Gerais</h5>
-                <table class="table">
-                    <tr>
-                        <th style="width: 200px;">Código:</th>
-                        <td>{{ instrumento.codigo }}</td>
-                    </tr>
-                    <tr>
-                        <th>Marca:</th>
-                        <td>{{ instrumento.modelo.marca.nome }}</td>
-                    </tr>
-                    <tr>
-                        <th>Modelo:</th>
-                        <td>{{ instrumento.modelo.nome }}</td>
-                    </tr>
-                    <tr>
-                        <th>Categoria:</th>
-                        <td>{{ instrumento.modelo.subcategoria.categoria.nome }}</td>
-                    </tr>
-                    <tr>
-                        <th>Subcategoria:</th>
-                        <td>{{ instrumento.modelo.subcategoria.nome }}</td>
-                    </tr>
-                    <tr>
-                        <th>Número de Série:</th>
-                        <td>{{ instrumento.numero_serie|default:"Não informado" }}</td>
-                    </tr>
-                    <tr>
-                        <th>Ano de Fabricação:</th>
-                        <td>{{ instrumento.ano_fabricacao|default:"Não informado" }}</td>
-                    </tr>
-                    <tr>
-                        <th>Data de Aquisição:</th>
-                        <td>{{ instrumento.data_aquisicao|date:"d/m/Y"|default:"Não informada" }}</td>
-                    </tr>
-                </table>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-guitar"></i> 
+                    {{ instrumento.codigo }}
+                </h4>
+                <div>
+                    <a href="{% url 'instrumento_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
+                    <a href="{% url 'instrumento_update' instrumento.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <a href="{% url 'instrumento_delete' instrumento.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Excluir
+                    </a>
+                </div>
             </div>
-            <div class="col-md-6">
-                <h5 class="mb-3">Valores e Estado</h5>
-                <table class="table">
-                    <tr>
-                        <th style="width: 200px;">Preço:</th>
-                        <td>R$ {{ instrumento.preco|floatformat:2 }}</td>
-                    </tr>
-                    <tr>
-                        <th>Valor de Mercado:</th>
-                        <td>R$ {{ instrumento.valor_mercado|floatformat:2|default:"Não informado" }}</td>
-                    </tr>
-                    <tr>
-                        <th>Estado de Conservação:</th>
-                        <td>{{ instrumento.get_estado_conservacao_display }}</td>
-                    </tr>
-                    <tr>
-                        <th>Status:</th>
-                        <td>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Informações Básicas -->
+                <div class="col-md-6">
+                    <h5 class="mb-3">Informações Básicas</h5>
+                    <dl class="row">
+                        <dt class="col-sm-4">Código</dt>
+                        <dd class="col-sm-8">{{ instrumento.codigo }}</dd>
+
+                        <dt class="col-sm-4">Categoria</dt>
+                        <dd class="col-sm-8">{{ instrumento.modelo.subcategoria.categoria.nome }}</dd>
+
+                        <dt class="col-sm-4">Subcategoria</dt>
+                        <dd class="col-sm-8">{{ instrumento.modelo.subcategoria.nome }}</dd>
+
+                        <dt class="col-sm-4">Marca</dt>
+                        <dd class="col-sm-8">{{ instrumento.modelo.marca.nome }}</dd>
+
+                        <dt class="col-sm-4">Modelo</dt>
+                        <dd class="col-sm-8">{{ instrumento.modelo.nome }}</dd>
+
+                        <dt class="col-sm-4">Número de Série</dt>
+                        <dd class="col-sm-8">{{ instrumento.numero_serie|default:"Não informado" }}</dd>
+
+                        <dt class="col-sm-4">Valor de Aquisição</dt>
+                        <dd class="col-sm-8">R$ {{ instrumento.preco|default:0|floatformat:2 }}</dd>
+
+                        <dt class="col-sm-4">Valor de Mercado</dt>
+                        <dd class="col-sm-8">R$ {{ instrumento.valor_mercado|default:0|floatformat:2 }}</dd>
+
+                        <dt class="col-sm-4">Diferença</dt>
+                        <dd class="col-sm-8">
+                            {% with diferenca=instrumento.valor_mercado|default:0|sub:instrumento.preco|default:0 %}
+                            <span class="{% if diferenca >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                R$ {{ diferenca|floatformat:2 }}
+                                {% if instrumento.preco and instrumento.preco > 0 %}
+                                    {% widthratio diferenca instrumento.preco 100 as percentual %}
+                                    ({{ percentual }}%)
+                                {% endif %}
+                            </span>
+                            {% endwith %}
+                        </dd>
+
+                        <dt class="col-sm-4">Ano de Fabricação</dt>
+                        <dd class="col-sm-8">{{ instrumento.ano_fabricacao|default:"Não informado" }}</dd>
+
+                        <dt class="col-sm-4">Data de Aquisição</dt>
+                        <dd class="col-sm-8">{{ instrumento.data_aquisicao|date:"d/m/Y"|default:"Não informada" }}</dd>
+                    </dl>
+                </div>
+
+                <!-- Valores e Estado -->
+                <div class="col-md-6">
+                    <h5 class="mb-3">Valores e Estado</h5>
+                    <dl class="row">
+                        <dt class="col-sm-4">Preço</dt>
+                        <dd class="col-sm-8">R$ {{ instrumento.preco|floatformat:2 }}</dd>
+
+                        <dt class="col-sm-4">Valor de Mercado</dt>
+                        <dd class="col-sm-8">R$ {{ instrumento.valor_mercado|floatformat:2|default:"Não informado" }}</dd>
+
+                        <dt class="col-sm-4">Estado</dt>
+                        <dd class="col-sm-8">{{ instrumento.get_estado_conservacao_display }}</dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
                             <span class="badge {% if instrumento.status == 'disponivel' %}bg-success{% elif instrumento.status == 'vendido' %}bg-danger{% else %}bg-warning{% endif %}">
                                 {{ instrumento.get_status_display }}
                             </span>
-                        </td>
-                    </tr>
-                </table>
-
-                <h5 class="mb-3 mt-4">Características</h5>
-                <p>{{ instrumento.caracteristicas|linebreaks|default:"Não informadas" }}</p>
-
-                <h5 class="mb-3">Descrição</h5>
-                <p>{{ instrumento.descricao|linebreaks|default:"Sem descrição" }}</p>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-12">
-                <h5 class="mb-3">
-                    Fotos 
-                    <a href="{% url 'foto_create' instrumento.pk %}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-plus"></i> Adicionar Foto
-                    </a>
-                </h5>
-                {% if instrumento.fotoinstrumento_set.exists %}
-                <div class="row">
-                    <div class="col-md-8 mx-auto">
-                        <div id="carouselFotos" class="carousel slide" data-bs-ride="carousel">
-                            <!-- Indicadores -->
-                            <div class="carousel-indicators">
-                                {% for foto in instrumento.fotoinstrumento_set.all %}
-                                <button type="button" data-bs-target="#carouselFotos" data-bs-slide-to="{{ forloop.counter0 }}" 
-                                    {% if forloop.first %}class="active"{% endif %} aria-current="true" 
-                                    aria-label="Foto {{ forloop.counter }}">
-                                </button>
-                                {% endfor %}
-                            </div>
-
-                            <!-- Slides -->
-                            <div class="carousel-inner">
-                                {% for foto in instrumento.fotoinstrumento_set.all %}
-                                <div class="carousel-item {% if forloop.first %}active{% endif %} position-relative">
-                                    <img src="{{ foto.imagem.url }}" class="d-block w-100" alt="Foto do instrumento">
-                                    <form method="post" action="{% url 'foto_delete' instrumento.pk foto.pk %}" 
-                                          style="position: absolute; top: 10px; right: 10px;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                                {% endfor %}
-                            </div>
-
-                            <!-- Controles -->
-                            <button class="carousel-control-prev" type="button" data-bs-target="#carouselFotos" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Anterior</span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#carouselFotos" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Próxima</span>
-                            </button>
-                        </div>
-                    </div>
+                        </dd>
+                    </dl>
                 </div>
-                {% else %}
-                <p class="text-muted">Nenhuma foto cadastrada.</p>
-                {% endif %}
+            </div>
+
+            <!-- Fotos -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h5 class="mb-3">
+                        Fotos 
+                        <a href="{% url 'foto_create' instrumento.pk %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus"></i> Adicionar Foto
+                        </a>
+                    </h5>
+                    {% if instrumento.fotoinstrumento_set.exists %}
+                        <div class="row">
+                            <div class="col-md-8 mx-auto">
+                                <div id="carouselFotos" class="carousel slide" data-bs-ride="carousel">
+                                    <!-- Indicadores -->
+                                    <div class="carousel-indicators">
+                                        {% for foto in instrumento.fotoinstrumento_set.all %}
+                                        <button type="button" data-bs-target="#carouselFotos" data-bs-slide-to="{{ forloop.counter0 }}" 
+                                            {% if forloop.first %}class="active"{% endif %} aria-current="true" 
+                                            aria-label="Foto {{ forloop.counter }}">
+                                        </button>
+                                        {% endfor %}
+                                    </div>
+
+                                    <!-- Slides -->
+                                    <div class="carousel-inner">
+                                        {% for foto in instrumento.fotoinstrumento_set.all %}
+                                        <div class="carousel-item {% if forloop.first %}active{% endif %} position-relative">
+                                            <img src="{{ foto.imagem.url }}" 
+                                                 class="d-block w-100" 
+                                                 alt="{{ foto.descricao|default:'Foto do instrumento' }}"
+                                                 data-foto-id="{{ foto.pk }}"
+                                                 style="object-fit: contain; height: 400px;">
+                                            <form method="post" action="{% url 'foto_delete' instrumento.pk foto.pk %}" 
+                                                  style="position: absolute; top: 10px; right: 10px; z-index: 1000;"
+                                                  onsubmit="return confirm('Tem certeza que deseja excluir esta foto?')">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-danger" 
+                                                        onclick="event.stopPropagation(); return true;">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+
+                                    <!-- Controles -->
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselFotos" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Anterior</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselFotos" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Próxima</span>
+                                    </button>
+                                </div>
+
+                                <!-- Descrição da foto -->
+                                <div class="mt-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text">Descrição da Foto:</span>
+                                        <input type="text" id="descricaoFoto" class="form-control" 
+                                               placeholder="Adicionar descrição...">
+                                        <button class="btn btn-outline-primary" type="button" onclick="salvarDescricao()">
+                                            <i class="fas fa-save"></i> Salvar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Miniaturas -->
+                                <div class="row mt-2">
+                                    {% for foto in instrumento.fotoinstrumento_set.all %}
+                                    <div class="col-3 mb-2">
+                                        <img src="{{ foto.imagem.url }}" 
+                                             class="img-thumbnail" 
+                                             alt="Miniatura"
+                                             style="cursor: pointer; height: 80px; object-fit: cover;"
+                                             onclick="$('#carouselFotos').carousel({{ forloop.counter0 }});">
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Nenhuma foto cadastrada para este instrumento.
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Carregar descrição inicial
+    const primeiraFoto = document.querySelector('.carousel-item.active img');
+    if (primeiraFoto) {
+        carregarDescricao(primeiraFoto.dataset.fotoId);
+    }
+
+    // Atualizar descrição quando mudar de foto
+    const carousel = document.getElementById('carouselFotos');
+    carousel.addEventListener('slid.bs.carousel', function() {
+        const fotoAtual = document.querySelector('.carousel-item.active img');
+        if (fotoAtual) {
+            carregarDescricao(fotoAtual.dataset.fotoId);
+        }
+    });
+});
+
+function carregarDescricao(fotoId) {
+    const input = document.getElementById('descricaoFoto');
+    input.dataset.fotoId = fotoId;
+    
+    // Encontrar a imagem correspondente e pegar sua descrição do atributo alt
+    const img = document.querySelector(`img[data-foto-id="${fotoId}"]`);
+    const descricao = img.alt === 'Foto do instrumento' ? '' : img.alt;
+    input.value = descricao;
+}
+
+function salvarDescricao() {
+    const input = document.getElementById('descricaoFoto');
+    const fotoId = input.dataset.fotoId;
+    const newDescricao = input.value.trim();
+    
+    fetch(`/instrumentos/{{ instrumento.pk }}/fotos/${fotoId}/descricao/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `descricao=${encodeURIComponent(newDescricao)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Atualizar o alt da imagem
+            const img = document.querySelector(`img[data-foto-id="${fotoId}"]`);
+            img.alt = newDescricao || 'Foto do instrumento';
+            
+            // Mostrar mensagem de sucesso
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-success position-fixed bottom-0 end-0 m-3';
+            toast.innerHTML = 'Descrição atualizada com sucesso!';
+            document.body.appendChild(toast);
+            
+            // Remover mensagem após 3 segundos
+            setTimeout(() => toast.remove(), 3000);
+        }
+    });
+}
+</script>
 {% endblock %}

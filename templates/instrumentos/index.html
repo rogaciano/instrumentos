@@ -18,47 +18,107 @@
         </div>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+    <!-- Cards financeiros -->
+    <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
         <div class="col">
-            <div class="card h-100">
+            <div class="card h-100 bg-primary text-white">
                 <div class="card-body text-center">
-                    <h3 class="display-4 text-primary">{{ total_instrumentos }}</h3>
-                    <h5 class="card-title">
-                        <i class="fas fa-guitar"></i>
-                        Instrumentos
-                    </h5>
-                    <a href="{% url 'instrumento_list' %}" class="btn btn-outline-primary">
-                        Ver Todos
+                    <h5 class="card-title">Valor de Aquisição</h5>
+                    <h3 class="display-6">R$ {{ preco|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col">
+            <div class="card h-100 bg-success text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Valor de Mercado</h5>
+                    <h3 class="display-6">R$ {{ valor_mercado|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100 bg-info text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Diferença</h5>
+                    <h3 class="display-6">R$ {{ diferenca|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100 bg-info text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Valorização</h5>
+                    <h3 class="display-6">{{ valorizacao|floatformat:1 }}%</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards de acesso -->
+    <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
+        <div class="col">
+            <div class="card h-100 bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-guitar fa-2x mb-3"></i>
+                    <h5 class="card-title">Instrumentos</h5>
+                    <h3 class="display-6 mb-3">{{ total_instrumentos }}</h3>
+                    <a href="{% url 'instrumento_list' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-right"></i> Acessar
                     </a>
                 </div>
             </div>
         </div>
         
         <div class="col">
-            <div class="card h-100">
+            <div class="card h-100 bg-success text-white">
                 <div class="card-body text-center">
-                    <h3 class="display-4 text-success">{{ total_marcas }}</h3>
-                    <h5 class="card-title">
-                        <i class="fas fa-trademark"></i>
-                        Marcas
-                    </h5>
-                    <a href="{% url 'marca_list' %}" class="btn btn-outline-success">
-                        Ver Todas
+                    <i class="fas fa-tags fa-2x mb-3"></i>
+                    <h5 class="card-title">Categorias</h5>
+                    <h3 class="display-6 mb-3">{{ total_categorias }}</h3>
+                    <a href="{% url 'categoria_list' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-right"></i> Acessar
                     </a>
                 </div>
             </div>
         </div>
-        
+
         <div class="col">
-            <div class="card h-100">
+            <div class="card h-100 bg-info text-white">
                 <div class="card-body text-center">
-                    <h3 class="display-4 text-info">{{ total_modelos }}</h3>
-                    <h5 class="card-title">
-                        <i class="fas fa-boxes"></i>
-                        Modelos
-                    </h5>
-                    <a href="{% url 'modelo_list' %}" class="btn btn-outline-info">
-                        Ver Todos
+                    <i class="fas fa-sitemap fa-2x mb-3"></i>
+                    <h5 class="card-title">Subcategorias</h5>
+                    <h3 class="display-6 mb-3">{{ total_subcategorias }}</h3>
+                    <a href="{% url 'subcategoria_list' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-right"></i> Acessar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100 bg-warning text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-trademark fa-2x mb-3"></i>
+                    <h5 class="card-title">Marcas</h5>
+                    <h3 class="display-6 mb-3">{{ total_marcas }}</h3>
+                    <a href="{% url 'marca_list' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-right"></i> Acessar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100 bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-2x mb-3"></i>
+                    <h5 class="card-title">Modelos</h5>
+                    <h3 class="display-6 mb-3">{{ total_modelos }}</h3>
+                    <a href="{% url 'modelo_list' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-right"></i> Acessar
                     </a>
                 </div>
             </div>

@@ -6,7 +6,7 @@ from .views import (
     MarcaListView, MarcaCreateView, MarcaUpdateView, MarcaDeleteView,
     ModeloListView, ModeloDetailView, ModeloCreateView, ModeloUpdateView, ModeloDeleteView,
     InstrumentoListView, InstrumentoDetailView, InstrumentoCreateView, InstrumentoUpdateView, InstrumentoDeleteView,
-    FotoCreateView, FotoDeleteView,
+    FotoCreateView,
     HomeView
 )
 
@@ -51,7 +51,8 @@ urlpatterns = [
 
     # Fotos
     path('instrumentos/<int:instrumento_pk>/fotos/nova/', FotoCreateView.as_view(), name='foto_create'),
-    path('instrumentos/<int:instrumento_pk>/fotos/<int:pk>/excluir/', FotoDeleteView.as_view(), name='foto_delete'),
+    path('instrumentos/<int:instrumento_pk>/fotos/<int:pk>/excluir/', views.foto_delete, name='foto_delete'),
+    path('instrumentos/<int:instrumento_pk>/fotos/<int:pk>/descricao/', views.foto_update_descricao, name='foto_update_descricao'),
 
     # API
     path('api/modelos-por-marca/<int:marca_id>/', views.modelos_por_marca, name='modelos_por_marca'),

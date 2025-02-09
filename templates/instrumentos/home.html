@@ -1,129 +1,202 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
 
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<!-- Cards de Resumo -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-4">
-        <div class="card bg-primary text-white h-100">
-            <div class="card-body text-center">
-                <i class="fas fa-guitar fa-3x mb-3"></i>
-                <h5 class="card-title">Instrumentos</h5>
-                <h3 class="mb-3">{{ total_instrumentos }}</h3>
-                <a href="{% url 'instrumento_list' %}" class="btn btn-light">
-                    <i class="fas fa-arrow-right"></i> Acessar
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-4">
-        <div class="card bg-success text-white h-100">
-            <div class="card-body text-center">
-                <i class="fas fa-tags fa-3x mb-3"></i>
-                <h5 class="card-title">Categorias</h5>
-                <h3 class="mb-3">{{ total_categorias }}</h3>
-                <a href="{% url 'categoria_list' %}" class="btn btn-light">
-                    <i class="fas fa-arrow-right"></i> Acessar
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-4">
-        <div class="card bg-info text-white h-100">
-            <div class="card-body text-center">
-                <i class="fas fa-sitemap fa-3x mb-3"></i>
-                <h5 class="card-title">Subcategorias</h5>
-                <h3 class="mb-3">{{ total_subcategorias }}</h3>
-                <a href="{% url 'subcategoria_list' %}" class="btn btn-light">
-                    <i class="fas fa-arrow-right"></i> Acessar
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-4">
-        <div class="card bg-warning text-white h-100">
-            <div class="card-body text-center">
-                <i class="fas fa-copyright fa-3x mb-3"></i>
-                <h5 class="card-title">Marcas</h5>
-                <h3 class="mb-3">{{ total_marcas }}</h3>
-                <a href="{% url 'marca_list' %}" class="btn btn-light">
-                    <i class="fas fa-arrow-right"></i> Acessar
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="container mt-4">
+    <h1 class="mb-4">Dashboard</h1>
 
-<!-- Estatísticas Detalhadas -->
-<div class="row">
-    <!-- Categorias -->
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-tags"></i> Por Categoria
-                </h5>
+    <!-- Cards de Valores -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Valor de Aquisição</h5>
+                    <h3 class="card-text">R$ {{ total_aquisicao|floatformat:2|intcomma }}</h3>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="list-group">
-                    {% for categoria in categorias %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ categoria.nome }}
-                            <span class="badge bg-primary rounded-pill">{{ categoria.total_instrumentos }}</span>
-                        </div>
-                    {% empty %}
-                        <p class="text-muted">Nenhuma categoria com instrumentos.</p>
-                    {% endfor %}
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Valor de Mercado</h5>
+                    <h3 class="card-text">R$ {{ total_mercado|floatformat:2|intcomma }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card {% if diferenca_total >= 0 %}bg-info{% else %}bg-danger{% endif %} text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Diferença</h5>
+                    <h3 class="card-text">R$ {{ diferenca_total|floatformat:2|intcomma }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card {% if percentual_valorizacao >= 0 %}bg-info{% else %}bg-danger{% endif %} text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Valorização</h5>
+                    <h3 class="card-text">{{ percentual_valorizacao|floatformat:1 }}%</h3>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Subcategorias -->
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-sitemap"></i> Por Subcategoria
-                </h5>
+    <!-- Cards de Acesso Rápido -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-guitar fa-3x mb-3"></i>
+                    <h5 class="card-title">Instrumentos</h5>
+                    <h3 class="mb-3">{{ total_instrumentos }}</h3>
+                    <a href="{% url 'instrumento_list' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-right"></i> Acessar
+                    </a>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="list-group">
-                    {% for subcategoria in subcategorias %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ subcategoria.nome }}
-                            <div>
-                                <small class="text-muted">{{ subcategoria.categoria.nome }}</small>
-                                <span class="badge bg-info rounded-pill ms-2">{{ subcategoria.total_instrumentos }}</span>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-tags fa-3x mb-3"></i>
+                    <h5 class="card-title">Categorias</h5>
+                    <h3 class="mb-3">{{ total_categorias }}</h3>
+                    <a href="{% url 'categoria_list' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-right"></i> Acessar
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-sitemap fa-3x mb-3"></i>
+                    <h5 class="card-title">Subcategorias</h5>
+                    <h3 class="mb-3">{{ total_subcategorias }}</h3>
+                    <a href="{% url 'subcategoria_list' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-right"></i> Acessar
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-copyright fa-3x mb-3"></i>
+                    <h5 class="card-title">Marcas</h5>
+                    <h3 class="mb-3">{{ total_marcas }}</h3>
+                    <a href="{% url 'marca_list' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-right"></i> Acessar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos e Tabelas -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Marcas Mais Populares</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Marca</th>
+                                    <th class="text-end">Instrumentos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for marca in marcas_populares %}
+                                <tr>
+                                    <td>{{ marca.nome }}</td>
+                                    <td class="text-end">{{ marca.total_instrumentos }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas Detalhadas -->
+    <div class="row">
+        <!-- Categorias -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tags"></i> Por Categoria
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for categoria in categorias %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ categoria.nome }}
+                                <span class="badge bg-primary rounded-pill">{{ categoria.total_instrumentos }}</span>
                             </div>
-                        </div>
-                    {% empty %}
-                        <p class="text-muted">Nenhuma subcategoria com instrumentos.</p>
-                    {% endfor %}
+                        {% empty %}
+                            <p class="text-muted">Nenhuma categoria com instrumentos.</p>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Marcas -->
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-copyright"></i> Por Marca
-                </h5>
+        <!-- Subcategorias -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-sitemap"></i> Por Subcategoria
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for subcategoria in subcategorias %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ subcategoria.nome }}
+                                <div>
+                                    <small class="text-muted">{{ subcategoria.categoria.nome }}</small>
+                                    <span class="badge bg-info rounded-pill ms-2">{{ subcategoria.total_instrumentos }}</span>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">Nenhuma subcategoria com instrumentos.</p>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="list-group">
-                    {% for marca in marcas %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ marca.nome }}
-                            <span class="badge bg-warning rounded-pill">{{ marca.total_instrumentos }}</span>
-                        </div>
-                    {% empty %}
-                        <p class="text-muted">Nenhuma marca com instrumentos.</p>
-                    {% endfor %}
+        </div>
+
+        <!-- Marcas -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-copyright"></i> Por Marca
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for marca in marcas %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ marca.nome }}
+                                <span class="badge bg-warning rounded-pill">{{ marca.total_instrumentos }}</span>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">Nenhuma marca com instrumentos.</p>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,275 +1,159 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Instrumento{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h4 class="mb-0">
-            <i class="fas fa-guitar"></i> 
-            {% if form.instance.pk %}Editar{% else %}Novo{% endif %} Instrumento
-        </h4>
-    </div>
-    <div class="card-body">
-        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-            {% csrf_token %}
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="{{ form.codigo.id_for_label }}" class="form-label">Código</label>
-                        <input type="text" class="form-control {% if form.codigo.errors %}is-invalid{% endif %}"
-                               id="{{ form.codigo.id_for_label }}" name="{{ form.codigo.name }}"
-                               value="{{ form.codigo.value|default:'' }}" required>
-                        {% if form.codigo.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.codigo.errors|join:", " }}
-                        </div>
-                        {% endif %}
-                    </div>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">
+                <i class="fas fa-guitar"></i> 
+                {% if form.instance.pk %}Editar{% else %}Novo{% endif %} Instrumento
+            </h4>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Campos básicos do instrumento -->
+                {{ form.as_p }}
 
-                    <div class="mb-3">
-                        <label for="{{ form.marca.id_for_label }}" class="form-label">Marca</label>
-                        <select class="form-select {% if form.marca.errors %}is-invalid{% endif %}"
-                                id="{{ form.marca.id_for_label }}" name="{{ form.marca.name }}">
-                            <option value="">Selecione uma marca</option>
-                            {% for choice in form.marca.field.choices %}
-                            <option value="{{ choice.0 }}" {% if form.marca.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
-                                {{ choice.1 }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                        {% if form.marca.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.marca.errors|join:", " }}
-                        </div>
-                        {% endif %}
+                <!-- Seção de Fotos -->
+                <div class="card mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-images"></i> Fotos do Instrumento
+                        </h5>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.modelo.id_for_label }}" class="form-label">Modelo</label>
-                        <select class="form-select {% if form.modelo.errors %}is-invalid{% endif %}"
-                                id="{{ form.modelo.id_for_label }}" name="{{ form.modelo.name }}" required>
-                            <option value="">Selecione um modelo</option>
-                            {% for choice in form.modelo.field.choices %}
-                            <option value="{{ choice.0 }}" {% if form.modelo.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
-                                {{ choice.1 }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                        {% if form.modelo.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.modelo.errors|join:", " }}
+                    <div class="card-body">
+                        <!-- Upload Múltiplo -->
+                        <div class="mb-4">
+                            <label for="{{ form.imagens_multiplas.id_for_label }}" class="form-label">
+                                <i class="fas fa-upload"></i> Upload Múltiplo
+                            </label>
+                            {{ form.imagens_multiplas }}
+                            <div id="multiple-preview" class="d-flex flex-wrap gap-2 mt-2"></div>
                         </div>
-                        {% endif %}
-                    </div>
 
-                    <div class="mb-3">
-                        <label for="{{ form.numero_serie.id_for_label }}" class="form-label">Número de Série</label>
-                        <input type="text" class="form-control {% if form.numero_serie.errors %}is-invalid{% endif %}"
-                               id="{{ form.numero_serie.id_for_label }}" name="{{ form.numero_serie.name }}"
-                               value="{{ form.numero_serie.value|default:'' }}">
-                        {% if form.numero_serie.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.numero_serie.errors|join:", " }}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.ano_fabricacao.id_for_label }}" class="form-label">Ano de Fabricação</label>
-                        <input type="number" class="form-control {% if form.ano_fabricacao.errors %}is-invalid{% endif %}"
-                               id="{{ form.ano_fabricacao.id_for_label }}" name="{{ form.ano_fabricacao.name }}"
-                               value="{{ form.ano_fabricacao.value|default:'' }}">
-                        {% if form.ano_fabricacao.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.ano_fabricacao.errors|join:", " }}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.data_aquisicao.id_for_label }}" class="form-label">Data de Aquisição</label>
-                        <input type="date" class="form-control {% if form.data_aquisicao.errors %}is-invalid{% endif %}"
-                               id="{{ form.data_aquisicao.id_for_label }}" name="{{ form.data_aquisicao.name }}"
-                               value="{{ form.data_aquisicao.value|date:'Y-m-d'|default:'' }}">
-                        {% if form.data_aquisicao.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.data_aquisicao.errors|join:", " }}
-                        </div>
-                        {% endif %}
+                        <!-- Formset de Fotos -->
+                        {{ fotos_formset.management_form }}
+                        {% for foto_form in fotos_formset %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    {{ foto_form.id }}
+                                    <div class="row align-items-center">
+                                        <!-- Preview da Imagem -->
+                                        <div class="col-md-3">
+                                            {% if foto_form.instance.pk and foto_form.instance.imagem %}
+                                                <img src="{{ foto_form.instance.imagem.url }}" 
+                                                     class="img-fluid rounded" 
+                                                     alt="Preview"
+                                                     style="max-height: 150px;">
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Campo de Upload -->
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">Nova Imagem</label>
+                                                {{ foto_form.imagem }}
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Descrição -->
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">Descrição</label>
+                                                {{ foto_form.descricao }}
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Checkbox de Exclusão -->
+                                        <div class="col-md-1">
+                                            {% if foto_form.instance.pk %}
+                                                <div class="form-check">
+                                                    {{ foto_form.DELETE }}
+                                                    <label class="form-check-label text-danger" 
+                                                           for="{{ foto_form.DELETE.id_for_label }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </label>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="{{ form.preco.id_for_label }}" class="form-label">Preço</label>
-                        <div class="input-group">
-                            <span class="input-group-text">R$</span>
-                            <input type="number" class="form-control {% if form.preco.errors %}is-invalid{% endif %}"
-                                   id="{{ form.preco.id_for_label }}" name="{{ form.preco.name }}"
-                                   value="{{ form.preco.value|default:'' }}" step="0.01">
-                        </div>
-                        {% if form.preco.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.preco.errors|join:", " }}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.valor_mercado.id_for_label }}" class="form-label">Valor de Mercado</label>
-                        <div class="input-group">
-                            <span class="input-group-text">R$</span>
-                            <input type="number" class="form-control {% if form.valor_mercado.errors %}is-invalid{% endif %}"
-                                   id="{{ form.valor_mercado.id_for_label }}" name="{{ form.valor_mercado.name }}"
-                                   value="{{ form.valor_mercado.value|default:'' }}" step="0.01">
-                        </div>
-                        {% if form.valor_mercado.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.valor_mercado.errors|join:", " }}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.estado_conservacao.id_for_label }}" class="form-label">Estado de Conservação</label>
-                        <select class="form-select {% if form.estado_conservacao.errors %}is-invalid{% endif %}"
-                                id="{{ form.estado_conservacao.id_for_label }}" name="{{ form.estado_conservacao.name }}" required>
-                            <option value="">Selecione o estado</option>
-                            {% for choice in form.estado_conservacao.field.choices %}
-                            <option value="{{ choice.0 }}" {% if form.estado_conservacao.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
-                                {{ choice.1 }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                        {% if form.estado_conservacao.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.estado_conservacao.errors|join:", " }}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
-                        <select class="form-select {% if form.status.errors %}is-invalid{% endif %}"
-                                id="{{ form.status.id_for_label }}" name="{{ form.status.name }}" required>
-                            <option value="">Selecione o status</option>
-                            {% for choice in form.status.field.choices %}
-                            <option value="{{ choice.0 }}" {% if form.status.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
-                                {{ choice.1 }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                        {% if form.status.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.status.errors|join:", " }}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.caracteristicas.id_for_label }}" class="form-label">Características</label>
-                        <textarea class="form-control {% if form.caracteristicas.errors %}is-invalid{% endif %}"
-                                  id="{{ form.caracteristicas.id_for_label }}" name="{{ form.caracteristicas.name }}"
-                                  rows="3">{{ form.caracteristicas.value|default:'' }}</textarea>
-                        {% if form.caracteristicas.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.caracteristicas.errors|join:", " }}
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.descricao.id_for_label }}" class="form-label">Descrição</label>
-                        <textarea class="form-control {% if form.descricao.errors %}is-invalid{% endif %}"
-                                  id="{{ form.descricao.id_for_label }}" name="{{ form.descricao.name }}"
-                                  rows="4">{{ form.descricao.value|default:'' }}</textarea>
-                        {% if form.descricao.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.descricao.errors|join:", " }}
-                        </div>
-                        {% endif %}
-                    </div>
+                <!-- Botões -->
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                    <a href="{% url 'instrumento_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
                 </div>
-            </div>
-
-            {% if not form.instance.pk %}
-            <div class="mb-3">
-                <label for="fotos" class="form-label">Fotos</label>
-                <input type="file" name="fotos" id="fotos" class="form-control" multiple accept="image/*">
-                <div class="form-text">Você pode selecionar múltiplas fotos (opcional). Tamanho máximo: 5MB por foto.</div>
-            </div>
-            {% endif %}
-
-            <div class="d-flex justify-content-end gap-2">
-                <a href="{% url 'instrumento_list' %}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancelar
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Salvar
-                </button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Validação do formulário
-    (function () {
-        'use strict'
-        var forms = document.querySelectorAll('.needs-validation')
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                form.classList.add('was-validated')
-            }, false)
-        })
-    })()
+    $(document).ready(function() {
+        // Preview para upload múltiplo
+        $('#id_imagens_multiplas').change(function() {
+            var previewDiv = $('#multiple-preview');
+            previewDiv.empty();
 
-    // Elementos do formulário
-    const marcaSelect = document.getElementById('{{ form.marca.id_for_label }}');
-    const modeloSelect = document.getElementById('{{ form.modelo.id_for_label }}');
-
-    // Função para atualizar os modelos baseado na marca selecionada
-    async function atualizarModelos() {
-        const marcaId = marcaSelect.value;
-        modeloSelect.innerHTML = '<option value="">Selecione um modelo</option>';
-        
-        if (marcaId) {
-            try {
-                const response = await fetch(`/api/modelos-por-marca/${marcaId}/`);
-                const modelos = await response.json();
-                
-                modelos.forEach(modelo => {
-                    const option = document.createElement('option');
-                    option.value = modelo.id;
-                    option.textContent = modelo.nome;
-                    modeloSelect.appendChild(option);
+            if (this.files) {
+                Array.from(this.files).forEach(function(file) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var img = $('<img>')
+                            .attr('src', e.target.result)
+                            .addClass('img-thumbnail')
+                            .css('max-height', '100px');
+                        previewDiv.append(img);
+                    }
+                    reader.readAsDataURL(file);
                 });
-                
-                // Se houver um modelo pré-selecionado, selecionar ele
-                const modeloPreSelecionado = '{{ form.modelo.value|default:"" }}';
-                if (modeloPreSelecionado) {
-                    modeloSelect.value = modeloPreSelecionado;
-                }
-            } catch (error) {
-                console.error('Erro ao carregar modelos:', error);
             }
-        }
-    }
+        });
 
-    // Atualizar modelos quando a marca mudar
-    marcaSelect.addEventListener('change', atualizarModelos);
+        // Preview para cada campo de upload individual
+        $('.foto-form input[type="file"]').change(function() {
+            var input = this;
+            var preview = $(this).closest('.row').find('img');
+            
+            if (!preview.length) {
+                preview = $('<img class="img-fluid rounded" style="max-height: 150px;">');
+                $(this).closest('.row').find('.col-md-3').append(preview);
+            }
 
-    // Se houver uma marca pré-selecionada, carregar seus modelos
-    if (marcaSelect.value) {
-        atualizarModelos();
-    }
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        });
+
+        // Efeito ao marcar exclusão
+        $('input[name$="-DELETE"]').change(function() {
+            var card = $(this).closest('.card');
+            if ($(this).is(':checked')) {
+                card.addClass('opacity-50');
+            } else {
+                card.removeClass('opacity-50');
+            }
+        });
+    });
 </script>
 {% endblock %}
