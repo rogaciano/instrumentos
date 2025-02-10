@@ -77,11 +77,8 @@ class Modelo(models.Model):
 class Instrumento(models.Model):
     ESTADO_CHOICES = [
         ('novo', 'Novo'),
-        ('excelente', 'Excelente'),
-        ('muito_bom', 'Muito Bom'),
-        ('bom', 'Bom'),
-        ('regular', 'Regular'),
-        ('ruim', 'Ruim')
+        ('usado', 'Usado'),
+        ('restaurado', 'Restaurado'),
     ]
     
     STATUS_CHOICES = [
@@ -91,38 +88,40 @@ class Instrumento(models.Model):
         ('manutencao', 'Em Manutenção'),
     ]
 
-    codigo = models.CharField('Código', max_length=50, unique=True, default='INST001')
-    modelo = models.ForeignKey(Modelo, on_delete=models.CASCADE)
-    numero_serie = models.CharField('Número de Série', max_length=100, blank=True)
-    ano_fabricacao = models.IntegerField('Ano de Fabricação', null=True, blank=True)
-    data_aquisicao = models.DateField('Data de Aquisição', default=timezone.now)
-    preco = models.DecimalField('Preço', max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    valor_mercado = models.DecimalField('Valor de Mercado', max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], null=True, blank=True)
-    estado_conservacao = models.CharField('Estado de Conservação', max_length=20, choices=ESTADO_CHOICES, default='bom')
-    status = models.CharField('Status', max_length=20, choices=STATUS_CHOICES, default='disponivel')
-    caracteristicas = models.TextField('Características', blank=True)
-    descricao = models.TextField('Descrição', blank=True)
-    data_cadastro = models.DateTimeField('Data de Cadastro', auto_now_add=True, null=True)
-    ultima_atualizacao = models.DateTimeField('Última Atualização', auto_now=True, null=True)
+    nome = models.CharField(max_length=200, null=True, blank=True)  
+    numero_serie = models.CharField(max_length=100, blank=True, null=True)
+    categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, null=True)
+    subcategoria = models.ForeignKey(SubCategoria, on_delete=models.PROTECT, null=True)
+    marca = models.ForeignKey(Marca, on_delete=models.PROTECT, null=True)
+    modelo = models.ForeignKey(Modelo, on_delete=models.PROTECT, null=True)
+    preco = models.DecimalField(max_digits=10, decimal_places=2, null=True)  
+    data_aquisicao = models.DateField(default=timezone.now)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='novo')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='disponivel')
+    valor_venda = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    data_venda = models.DateField(blank=True, null=True)
+    descricao = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.codigo} - {self.modelo}"
+        return f"{self.marca} {self.modelo} - {self.numero_serie}" if self.marca and self.modelo else "Instrumento sem identificação"
 
     class Meta:
         verbose_name = 'Instrumento'
         verbose_name_plural = 'Instrumentos'
-        ordering = ['-id']
+        ordering = ['-created_at']
 
 class FotoInstrumento(models.Model):
-    instrumento = models.ForeignKey(Instrumento, on_delete=models.CASCADE)
-    imagem = models.ImageField(upload_to='instrumentos/', blank=True, null=True)
-    descricao = models.CharField(max_length=100, blank=True, null=True)
-    data_upload = models.DateTimeField(auto_now_add=True)
+    instrumento = models.ForeignKey(Instrumento, on_delete=models.CASCADE, related_name='fotos')
+    imagem = models.ImageField(upload_to='instrumentos/', null=True, blank=True)
+    descricao = models.CharField(max_length=200, blank=True, null=True)
+    ordem = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return f"Foto de {self.instrumento}"
+        return f"Foto {self.ordem} - {self.instrumento}"
 
     class Meta:
         verbose_name = 'Foto do Instrumento'
-        verbose_name_plural = 'Fotos dos Instrumentos'
-        ordering = ['-data_upload']
+        verbose_name_plural = 'Fotos do Instrumento'
+        ordering = ['ordem']

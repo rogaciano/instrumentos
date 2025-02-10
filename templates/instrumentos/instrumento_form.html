@@ -127,21 +127,6 @@
                 </div>
 
                 <div class="row mb-3">
-                    <div class="col-12">
-                        <div class="form-group">
-                            {{ form.descricao.label_tag }}
-                            {{ form.descricao }}
-                            {% if form.descricao.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.descricao.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Campos adicionais -->
-                <div class="row mb-3">
                     <div class="col-md-6">
                         <div class="form-group">
                             {{ form.estado.label_tag }}
@@ -191,6 +176,20 @@
                     </div>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="form-group">
+                            {{ form.descricao.label_tag }}
+                            {{ form.descricao }}
+                            {% if form.descricao.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.descricao.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Seção de Fotos -->
                 <div class="card mt-4">
                     <div class="card-header bg-light">
@@ -199,64 +198,73 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <!-- Upload Múltiplo -->
-                        <div class="mb-4">
-                            <label for="{{ form.imagens_multiplas.id_for_label }}" class="form-label">
-                                <i class="fas fa-upload"></i> Upload Múltiplo
-                            </label>
-                            {{ form.imagens_multiplas }}
-                            <div id="multiple-preview" class="d-flex flex-wrap gap-2 mt-2"></div>
-                        </div>
-
                         <!-- Formset de Fotos -->
                         {{ fotos_formset.management_form }}
-                        {% for foto_form in fotos_formset %}
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    {{ foto_form.id }}
-                                    <div class="row align-items-center">
-                                        <!-- Preview da Imagem -->
-                                        <div class="col-md-3">
-                                            {% if foto_form.instance.pk and foto_form.instance.imagem %}
-                                                <img src="{{ foto_form.instance.imagem.url }}" 
-                                                     class="img-fluid rounded" 
-                                                     alt="Preview"
-                                                     style="max-height: 150px;">
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <!-- Campo de Upload -->
-                                        <div class="col-md-4">
-                                            <div class="mb-3">
-                                                <label class="form-label">Nova Imagem</label>
-                                                {{ foto_form.imagem }}
+                        <div id="fotos-formset">
+                            {% for foto_form in fotos_formset %}
+                                <div class="card mb-3 foto-form">
+                                    <div class="card-body">
+                                        {{ foto_form.id }}
+                                        <div class="row align-items-center">
+                                            <!-- Preview da Imagem -->
+                                            <div class="col-md-3">
+                                                {% if foto_form.instance.pk and foto_form.instance.imagem %}
+                                                    <img src="{{ foto_form.instance.imagem.url }}" 
+                                                         class="img-fluid rounded" 
+                                                         alt="Preview"
+                                                         style="max-height: 150px;">
+                                                {% endif %}
+                                                <div class="preview-container mt-2"></div>
                                             </div>
-                                        </div>
-                                        
-                                        <!-- Descrição -->
-                                        <div class="col-md-4">
-                                            <div class="mb-3">
-                                                <label class="form-label">Descrição</label>
-                                                {{ foto_form.descricao }}
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Checkbox de Exclusão -->
-                                        <div class="col-md-1">
-                                            {% if foto_form.instance.pk %}
-                                                <div class="form-check">
-                                                    {{ foto_form.DELETE }}
-                                                    <label class="form-check-label text-danger" 
-                                                           for="{{ foto_form.DELETE.id_for_label }}">
-                                                        <i class="fas fa-trash"></i>
-                                                    </label>
+                                            
+                                            <!-- Campo de Upload -->
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Nova Imagem</label>
+                                                    {{ foto_form.imagem }}
+                                                    {% if foto_form.imagem.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {{ foto_form.imagem.errors }}
+                                                        </div>
+                                                    {% endif %}
                                                 </div>
-                                            {% endif %}
+                                            </div>
+                                            
+                                            <!-- Descrição -->
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Descrição</label>
+                                                    {{ foto_form.descricao }}
+                                                    {% if foto_form.descricao.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {{ foto_form.descricao.errors }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Checkbox de Exclusão -->
+                                            <div class="col-md-1">
+                                                {% if foto_form.instance.pk %}
+                                                    <div class="form-check">
+                                                        {{ foto_form.DELETE }}
+                                                        <label class="form-check-label text-danger" 
+                                                               for="{{ foto_form.DELETE.id_for_label }}">
+                                                            <i class="fas fa-trash"></i>
+                                                        </label>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        {% endfor %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Botão para adicionar mais fotos -->
+                        <button type="button" class="btn btn-outline-primary" id="add-foto">
+                            <i class="fas fa-plus"></i> Adicionar Foto
+                        </button>
                     </div>
                 </div>
 
@@ -275,162 +283,161 @@
 </div>
 
 <!-- Modal Novo Modelo -->
-<div class="modal fade" id="novoModeloModal" tabindex="-1" aria-labelledby="novoModeloModalLabel" aria-hidden="true">
+<div class="modal fade" id="novoModeloModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="novoModeloModalLabel">Novo Modelo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Novo Modelo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="formNovoModelo">
+                <form id="novoModeloForm">
                     <div class="mb-3">
-                        <label for="modeloNome" class="form-label">Nome do Modelo</label>
-                        <input type="text" class="form-control" id="modeloNome" required>
+                        <label for="nome" class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="nome" name="nome" required>
                     </div>
                     <div class="mb-3">
-                        <label for="modeloMarca" class="form-label">Marca</label>
-                        <select class="form-select" id="modeloMarca" required>
-                            <option value="">Selecione uma marca...</option>
-                            {% for marca in form.fields.marca.queryset %}
-                                <option value="{{ marca.id }}">{{ marca.nome }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="modeloDescricao" class="form-label">Descrição</label>
-                        <textarea class="form-control" id="modeloDescricao" rows="3"></textarea>
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="descricao" name="descricao" rows="3"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnSalvarModelo">Salvar</button>
+                <button type="button" class="btn btn-primary" id="salvarModelo">Salvar</button>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Função para atualizar o select de modelos
-        function atualizarModelos(marcaId, modeloId = null) {
-            fetch(`/api/modelos-por-marca/${marcaId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    const modeloSelect = document.getElementById('{{ form.modelo.auto_id }}');
-                    modeloSelect.innerHTML = '<option value="">---------</option>';
-                    data.forEach(modelo => {
-                        const option = new Option(modelo.nome, modelo.id);
-                        modeloSelect.add(option);
-                    });
-                    if (modeloId) {
-                        modeloSelect.value = modeloId;
-                    }
+$(document).ready(function() {
+    // Atualizar subcategorias quando a categoria mudar
+    $('#id_categoria').change(function() {
+        var categoriaId = $(this).val();
+        if (categoriaId) {
+            $.get('/api/subcategorias-por-categoria/' + categoriaId + '/', function(data) {
+                var select = $('#id_subcategoria');
+                select.empty();
+                select.append('<option value="">---------</option>');
+                data.forEach(function(item) {
+                    select.append(`<option value="${item.id}">${item.nome}</option>`);
                 });
+            });
+        }
+    });
+
+    // Atualizar modelos quando a marca mudar
+    $('#id_marca').change(function() {
+        var marcaId = $(this).val();
+        if (marcaId) {
+            $.get('/api/modelos-por-marca/' + marcaId + '/', function(data) {
+                var select = $('#id_modelo');
+                select.empty();
+                select.append('<option value="">---------</option>');
+                data.forEach(function(item) {
+                    select.append(`<option value="${item.id}">${item.nome}</option>`);
+                });
+            });
+        }
+    });
+
+    // Salvar novo modelo via AJAX
+    $('#salvarModelo').click(function() {
+        var marcaId = $('#id_marca').val();
+        var nome = $('#nome').val();
+        var descricao = $('#descricao').val();
+
+        if (!marcaId) {
+            alert('Por favor, selecione uma marca primeiro.');
+            return;
         }
 
-        // Atualizar modelos quando a marca é alterada
-        document.getElementById('{{ form.marca.auto_id }}').addEventListener('change', function() {
-            if (this.value) {
-                atualizarModelos(this.value);
-            }
-        });
+        if (!nome) {
+            alert('Por favor, preencha o nome do modelo.');
+            return;
+        }
 
-        // Preview de imagens múltiplas
-        document.getElementById('{{ form.imagens_multiplas.auto_id }}').addEventListener('change', function(e) {
-            const previewDiv = document.getElementById('multiple-preview');
-            previewDiv.innerHTML = '';
-            
-            if (this.files) {
-                [...this.files].forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'img-thumbnail';
-                        img.style.maxHeight = '100px';
-                        previewDiv.appendChild(img);
-                    }
-                    reader.readAsDataURL(file);
-                });
-            }
-        });
-
-        // Preview de imagem única
-        document.querySelectorAll('input[type="file"]:not(#{{ form.imagens_multiplas.auto_id }})').forEach(input => {
-            input.addEventListener('change', function() {
-                const previewContainer = this.closest('.card-body').querySelector('img');
-                if (previewContainer && this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        previewContainer.src = e.target.result;
-                    }
-                    reader.readAsDataURL(this.files[0]);
-                }
-            });
-        });
-
-        // Efeito ao marcar exclusão
-        document.querySelectorAll('input[type="checkbox"][name$="-DELETE"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const card = this.closest('.card');
-                if (this.checked) {
-                    card.style.opacity = '0.5';
-                } else {
-                    card.style.opacity = '1';
-                }
-            });
-        });
-
-        // Salvar novo modelo via AJAX
-        document.getElementById('btnSalvarModelo').addEventListener('click', function() {
-            const nome = document.getElementById('modeloNome').value;
-            const marca = document.getElementById('modeloMarca').value;
-            const descricao = document.getElementById('modeloDescricao').value;
-
-            if (!nome || !marca) {
-                alert('Por favor, preencha os campos obrigatórios.');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('nome', nome);
-            formData.append('marca', marca);
-            formData.append('descricao', descricao);
-            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-
-            fetch('{% url "modelo_create_ajax" %}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Atualizar o select de modelos e selecionar o novo modelo
-                    atualizarModelos(marca, data.modelo_id);
+        $.ajax({
+            url: '/api/modelo/create/',
+            method: 'POST',
+            data: {
+                marca: marcaId,
+                nome: nome,
+                descricao: descricao,
+                csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Adicionar o novo modelo ao select
+                    $('#id_modelo').append(`<option value="${response.modelo_id}" selected>${nome}</option>`);
                     
-                    // Fechar o modal e limpar o formulário
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('novoModeloModal'));
-                    modal.hide();
-                    document.getElementById('formNovoModelo').reset();
-
-                    // Mostrar mensagem de sucesso
-                    alert('Modelo criado com sucesso!');
+                    // Limpar e fechar o modal
+                    $('#novoModeloForm')[0].reset();
+                    $('#novoModeloModal').modal('hide');
                 } else {
-                    alert('Erro ao criar modelo: ' + data.error);
+                    alert('Erro ao criar modelo: ' + response.error);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+            },
+            error: function() {
                 alert('Erro ao criar modelo. Por favor, tente novamente.');
-            });
+            }
         });
     });
+
+    // Preview de imagem
+    $('#fotos-formset').on('change', 'input[type="file"]', function() {
+        var previewContainer = $(this).closest('.card-body').find('.preview-container');
+        previewContainer.empty();
+        
+        if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                previewContainer.html(`
+                    <img src="${e.target.result}" 
+                         class="img-fluid rounded" 
+                         alt="Preview"
+                         style="max-height: 150px;">
+                `);
+            }
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // Adicionar mais fotos
+    var formCount = $('#fotos-formset .foto-form').length;
+    var totalForms = $('#id_fotos-TOTAL_FORMS');
+
+    $('#add-foto').click(function() {
+        var template = $('#fotos-formset .foto-form:first').clone(true);
+        template.find('input, textarea').val('');
+        template.find('img').remove();
+        
+        // Atualizar IDs e names
+        template.find(':input').each(function() {
+            var name = $(this).attr('name').replace('-0-', '-' + formCount + '-');
+            var id = 'id_' + name;
+            $(this).attr({'name': name, 'id': id});
+        });
+
+        template.find('label').each(function() {
+            var newFor = $(this).attr('for').replace('-0-', '-' + formCount + '-');
+            $(this).attr('for', newFor);
+        });
+
+        $('#fotos-formset').append(template);
+        formCount++;
+        totalForms.val(formCount);
+    });
+
+    // Efeito ao marcar exclusão
+    $('#fotos-formset').on('change', 'input[type="checkbox"][name$="-DELETE"]', function() {
+        var card = $(this).closest('.card');
+        card.css('opacity', this.checked ? '0.5' : '1');
+    });
+});
 </script>
 {% endblock %}

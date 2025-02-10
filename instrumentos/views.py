@@ -459,48 +459,17 @@ class InstrumentoListView(ListView):
             'modelo__subcategoria__categoria'
         )
 
-class InstrumentoCreateView(CreateView):
+class InstrumentoCreateView(LoginRequiredMixin, CreateView):
     model = Instrumento
     form_class = InstrumentoCreateForm
     template_name = 'instrumentos/instrumento_form.html'
+    success_url = reverse_lazy('instrumento_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
             context['fotos_formset'] = FotoInstrumentoFormSet(
-                self.request.POST, 
-                self.request.FILES
-            )
-        else:
-            context['fotos_formset'] = FotoInstrumentoFormSet()
-        return context
-
-    def form_valid(self, form):
-        context = self.get_context_data()
-        fotos_formset = context['fotos_formset']
-        
-        if form.is_valid() and fotos_formset.is_valid():
-            self.object = form.save()
-            
-            # Salva o formset
-            fotos_formset.instance = self.object
-            fotos_formset.save()
-            
-            messages.success(self.request, 'Instrumento criado com sucesso!')
-            return redirect('instrumento_detail', pk=self.object.pk)
-        else:
-            return self.form_invalid(form)
-
-class InstrumentoUpdateView(UpdateView):
-    model = Instrumento
-    form_class = InstrumentoCreateForm
-    template_name = 'instrumentos/instrumento_form.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.request.POST:
-            context['fotos_formset'] = FotoInstrumentoFormSet(
-                self.request.POST, 
+                self.request.POST,
                 self.request.FILES,
                 instance=self.object
             )
@@ -512,15 +481,41 @@ class InstrumentoUpdateView(UpdateView):
         context = self.get_context_data()
         fotos_formset = context['fotos_formset']
         
-        if form.is_valid() and fotos_formset.is_valid():
+        if fotos_formset.is_valid():
             self.object = form.save()
-            
-            # Salva o formset
             fotos_formset.instance = self.object
             fotos_formset.save()
-            
-            messages.success(self.request, 'Instrumento atualizado com sucesso!')
-            return redirect('instrumento_detail', pk=self.object.pk)
+            return super().form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+class InstrumentoUpdateView(LoginRequiredMixin, UpdateView):
+    model = Instrumento
+    form_class = InstrumentoCreateForm
+    template_name = 'instrumentos/instrumento_form.html'
+    success_url = reverse_lazy('instrumento_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['fotos_formset'] = FotoInstrumentoFormSet(
+                self.request.POST,
+                self.request.FILES,
+                instance=self.object
+            )
+        else:
+            context['fotos_formset'] = FotoInstrumentoFormSet(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        fotos_formset = context['fotos_formset']
+        
+        if fotos_formset.is_valid():
+            self.object = form.save()
+            fotos_formset.instance = self.object
+            fotos_formset.save()
+            return super().form_valid(form)
         else:
             return self.form_invalid(form)
 
@@ -575,7 +570,7 @@ def modelos_por_marca(request, marca_id):
     return JsonResponse(list(modelos), safe=False)
 
 def modelo_create_ajax(request):
-    if request.method == 'POST' and request.is_ajax():
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         try:
             nome = request.POST.get('nome')
             marca_id = request.POST.get('marca')
